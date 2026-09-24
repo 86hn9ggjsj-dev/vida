@@ -1,0 +1,1543 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0d0d0d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Vida">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Vida Tracker</title>
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#0d0d0d;--s1:#1a1a19;--s2:#222221;--s3:#2c2c2a;--line:#2c2c2a;--axis:#383835;
+  --ink:#fff;--ink2:#c3c2b7;--muted:#898781;
+  --salud:#199e70;--mente:#9085e9;--dinero:#c98500;--habitos:#3987e5;
+  --good:#0ca30c;--warn:#fab219;--bad:#d03b3b;--pos:#3987e5;--neg:#e66767;
+  --r:18px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+body{padding:env(safe-area-inset-top) 0 calc(78px + env(safe-area-inset-bottom));overscroll-behavior-y:none;-webkit-user-select:none;user-select:none}
+input,textarea,select{-webkit-user-select:text;user-select:text}
+#view{max-width:560px;margin:0 auto;padding:8px 16px 24px}
+h1{font-size:28px;margin:14px 0 6px;letter-spacing:-.02em}
+.sub{color:var(--muted);font-size:14px;margin:0 0 8px}
+.card{background:var(--s1);border:1px solid rgba(255,255,255,.07);border-radius:var(--r);padding:16px;margin:12px 0}
+.card h2{margin:0 0 10px;font-size:17px;display:flex;align-items:center;gap:8px}
+.card h2 .pct{margin-left:auto;font-size:14px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.card h3{font-size:15px;margin:14px 0 8px;color:var(--ink2)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--c);flex:none;box-shadow:0 0 8px var(--c)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.card h2+.row,.row.first{border-top:0}
+.col{padding:10px 0;border-top:1px solid var(--line)}
+.lbl{color:var(--ink2);font-size:15px;display:flex;align-items:center;gap:6px}
+.lbl small{color:var(--muted)}
+.stepper{display:flex;align-items:center;gap:6px}
+.stepper button,.icon-btn{width:40px;height:40px;border-radius:12px;border:0;background:var(--s3);color:var(--ink);font-size:20px;line-height:1}
+.stepper .val{min-width:66px;text-align:center;font-weight:650;font-variant-numeric:tabular-nums}
+.seg{display:flex;gap:6px;margin-top:8px}
+.seg button{flex:1;min-width:0;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--s2);color:var(--ink2);font-size:16px;transition:.15s}
+.seg button.on{background:var(--c,var(--habitos));color:#fff;border-color:transparent;box-shadow:0 0 14px -3px var(--c,var(--habitos))}
+.seg.emo button{font-size:24px;filter:grayscale(1);opacity:.55}
+.seg.emo button.on{filter:none;opacity:1}
+.scale-cap{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{border:1px solid var(--line);background:var(--s2);color:var(--ink2);border-radius:999px;padding:8px 12px;font-size:14px}
+.chip.on{background:var(--c,var(--habitos));color:#fff;border-color:transparent;box-shadow:0 0 12px -3px var(--c)}
+.drops{display:flex;flex-wrap:wrap;gap:2px;margin-top:6px}
+.drops button{font-size:21px;background:none;border:0;padding:1px;opacity:.22;filter:grayscale(1);transition:.15s}
+.drops button.on{opacity:1;filter:drop-shadow(0 0 6px #3987e5)}
+.txt,select.txt{background:var(--s2);border:1px solid var(--line);color:var(--ink);border-radius:12px;padding:10px 12px;font:inherit;font-size:16px;width:100%}
+textarea.txt{min-height:70px;resize:vertical}
+.num{width:120px;text-align:right}
+.btn{border:1px solid var(--line);background:var(--s3);color:var(--ink);border-radius:12px;padding:12px 14px;font:inherit;font-size:15px;font-weight:600}
+.btn.primary{background:var(--c,var(--habitos));border-color:transparent;box-shadow:0 0 16px -4px var(--c,var(--habitos))}
+.btn.danger{color:#ff8f8f}
+.btn.full{width:100%;margin-top:10px}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.btns .btn{flex:1}
+.datenav{display:flex;align-items:center;justify-content:space-between;margin:8px 0 0}
+.datenav div{text-align:center}
+.datenav b{font-size:24px;display:block;letter-spacing:-.02em}
+.datenav small{color:var(--muted)}
+.datenav button{width:44px;height:44px;border-radius:50%;border:0;background:var(--s1);color:var(--ink);font-size:24px}
+.datenav button:disabled{opacity:.25}
+.hero{display:flex;align-items:center;gap:14px}
+.rings{flex:none}
+.hleg{flex:1;display:grid;gap:8px}
+.hl{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink2)}
+.hl b{margin-left:auto;color:var(--ink);font-variant-numeric:tabular-nums}
+.pillrow{display:flex;gap:6px;flex-wrap:wrap}
+.pill{background:var(--s1);border:1px solid rgba(255,255,255,.07);border-radius:999px;padding:6px 11px;font-size:13px;color:var(--ink2)}
+.pill b{color:var(--ink)}
+.xpbox{margin:10px 0 0}
+.xpbox small{color:var(--muted);font-size:12px}
+.xp{height:8px;background:var(--s3);border-radius:4px;overflow:hidden;margin-bottom:4px}
+.xp i{display:block;height:100%;background:linear-gradient(90deg,var(--habitos),var(--mente));border-radius:4px;box-shadow:0 0 10px var(--mente)}
+.habits{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.habit{display:flex;align-items:center;gap:8px;text-align:left;border:1px solid var(--line);background:var(--s2);color:var(--ink2);border-radius:14px;padding:10px;font:inherit;font-size:14px;min-height:52px;transition:.15s}
+.habit .e{font-size:22px;filter:grayscale(1);opacity:.6}
+.habit small{display:block;color:var(--muted);font-size:11px}
+.habit.on{background:color-mix(in srgb,var(--habitos) 22%,var(--s2));border-color:var(--habitos);color:#fff;box-shadow:0 0 14px -5px var(--habitos)}
+.habit.on .e{filter:none;opacity:1}
+.amount{display:flex;align-items:center;gap:8px;margin-top:10px}
+.amount input{font-size:28px;font-weight:700;text-align:right;padding:8px 12px}
+.amount span{font-size:24px;color:var(--muted)}
+.tx{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:15px}
+.tx .e{font-size:20px}
+.tx .n{flex:1;min-width:0}
+.tx .n small{display:block;color:var(--muted);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tx b{font-variant-numeric:tabular-nums}
+.tx .x{background:none;border:0;color:var(--muted);font-size:20px;width:32px;height:32px}
+.in{color:#5fd35f}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;margin-top:10px;background:var(--s2);border:1px solid var(--line);color:var(--ink2);border-radius:12px;padding:12px;font:inherit;font-size:15px}
+.toggle i{width:44px;height:26px;border-radius:13px;background:var(--s3);position:relative;flex:none;transition:.2s}
+.toggle i::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s}
+.toggle.on i{background:var(--c,var(--good))}
+.toggle.on i::after{left:21px}
+.bar{height:10px;background:var(--s3);border-radius:5px;overflow:hidden;display:flex;gap:2px}
+.bar i{display:block;height:100%;border-radius:5px}
+.meta{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-top:6px}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.tile{background:var(--s1);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:12px 14px}
+.tile .k{font-size:13px;color:var(--ink2);display:flex;align-items:center;gap:6px}
+.tile .v{font-size:26px;font-weight:700;letter-spacing:-.02em;margin:2px 0}
+.tile .v small{font-size:14px;color:var(--muted);font-weight:500}
+.tile .d{font-size:12px;color:var(--muted)}
+.d.good{color:#5fd35f}.d.bad{color:#ff8f8f}
+.tiles.three{grid-template-columns:1fr 1fr 1fr}
+.tiles.three .v{font-size:19px}
+.cwrap{position:relative}
+.cwrap svg{display:block;touch-action:pan-y;overflow:visible}
+.ax{fill:var(--muted);font-size:10px;font-variant-numeric:tabular-nums}
+.tip{position:absolute;top:-6px;left:0;display:none;pointer-events:none;background:#2c2c2a;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:6px 9px;font-size:12px;line-height:1.45;white-space:nowrap;z-index:3;box-shadow:0 6px 18px rgba(0,0,0,.5)}
+.tip b{font-weight:650}
+.tip .sw{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--ink2);margin-top:8px}
+.legend span{display:flex;align-items:center;gap:5px}
+.legend i{width:10px;height:10px;border-radius:50%}
+.legend i.dash{border-radius:0;height:2px;width:14px;background:none;border-top:2px dashed var(--muted)}
+.empty{color:var(--muted);font-size:14px;text-align:center;padding:26px 0}
+.rangeseg{display:flex;background:var(--s1);border-radius:12px;padding:3px;gap:3px;margin:8px 0}
+.rangeseg button{flex:1;border:0;background:none;color:var(--muted);border-radius:9px;padding:8px 0;font:inherit;font-size:14px;font-weight:600}
+.rangeseg button.on{background:var(--s3);color:var(--ink)}
+.hbar{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px 10px;font-size:14px}
+.hbar .t{height:12px;background:var(--s2);border-radius:0 6px 6px 0}
+.hbar .t i{display:block;height:100%;border-radius:0 6px 6px 0;background:var(--dinero)}
+.hbar .val{font-variant-numeric:tabular-nums;color:var(--ink);text-align:right}
+.corr{padding:10px 0;border-top:1px solid var(--line)}
+.corr:first-of-type{border-top:0}
+.corr p{margin:0 0 8px;font-size:15px;color:var(--ink2)}
+.corr p b{color:var(--ink)}
+.cbar{position:relative;height:8px;background:var(--s2);border-radius:4px}
+.cbar::after{content:"";position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:var(--axis)}
+.cbar i{position:absolute;top:0;bottom:0;border-radius:4px}
+.corr small{color:var(--muted);font-size:12px}
+.radar-tab{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;font-size:13px;color:var(--ink2);margin-top:8px}
+.radar-tab span{display:flex;justify-content:space-between}
+.radar-tab b{color:var(--ink);font-variant-numeric:tabular-nums}
+.months{display:grid;grid-template-columns:1fr 1fr;gap:14px 12px}
+.month h4{margin:0 0 4px;font-size:13px;color:var(--ink2);font-weight:600;text-transform:capitalize}
+.mgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.mgrid .wd{font-size:9px;color:var(--muted);text-align:center}
+.cell{aspect-ratio:1;border-radius:4px;border:0;padding:0;background:transparent;box-shadow:inset 0 0 0 1px var(--line)}
+.cell.has{box-shadow:none}
+.cell.fut{visibility:hidden}
+.cell.today{outline:2px solid #fff;outline-offset:-1px}
+.cell.sel{outline:2px solid var(--warn);outline-offset:0}
+.ramp{display:flex;align-items:center;gap:3px;font-size:12px;color:var(--muted)}
+.ramp i{width:14px;height:14px;border-radius:3px}
+.calbar{display:flex;align-items:center;gap:8px;justify-content:space-between;flex-wrap:wrap}
+.detail .kv{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;font-size:14px;color:var(--ink2);margin:8px 0}
+.detail .kv b{color:var(--ink)}
+.ach{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.badge{background:var(--s2);border:1px solid var(--line);border-radius:14px;padding:10px 6px;text-align:center;font-size:12px;color:var(--muted)}
+.badge .e{font-size:30px;display:block;filter:grayscale(1);opacity:.3}
+.badge b{display:block;font-size:12px;color:var(--ink2);margin:2px 0}
+.badge.ok{border-color:rgba(250,178,25,.5);background:linear-gradient(180deg,rgba(250,178,25,.12),var(--s2));color:var(--ink2)}
+.badge.ok .e{filter:drop-shadow(0 0 8px rgba(250,178,25,.6));opacity:1}
+.badge.ok b{color:#fff}
+.lvl{display:flex;align-items:center;gap:16px}
+.lvl .big{width:84px;height:84px;border-radius:50%;display:grid;place-items:center;font-size:34px;font-weight:800;background:radial-gradient(circle at 30% 30%,#9085e9,#3987e5 70%);box-shadow:0 0 28px -4px #9085e9;flex:none}
+.lvl .t{font-size:20px;font-weight:700}
+.goal{padding:12px 0;border-top:1px solid var(--line)}
+.goal:first-of-type{border-top:0}
+.goal .top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.goal .top .n{flex:1;font-weight:600}
+.goal .top small{color:var(--muted);font-variant-numeric:tabular-nums}
+.goal .ctrl{display:flex;align-items:center;gap:8px;margin-top:8px}
+.goal .ctrl .bar{flex:1}
+.list-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.list-item:first-child{border-top:0}
+.list-item span.n{flex:1}
+.list-item small{color:var(--muted)}
+.addrow{display:flex;gap:6px;margin-top:10px}
+.addrow .emo{width:58px;text-align:center;flex:none}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.grid2 label{font-size:13px;color:var(--muted);display:grid;gap:4px}
+.banner{background:rgba(250,178,25,.12);border:1px solid rgba(250,178,25,.4);color:#ffd37a;border-radius:14px;padding:10px 12px;font-size:14px;display:flex;align-items:center;gap:10px;margin-top:10px}
+.banner button{margin-left:auto;background:var(--warn);color:#1a1a19;border:0;border-radius:10px;padding:8px 10px;font-weight:700;font-size:13px;white-space:nowrap}
+.welcome p{color:var(--ink2);margin:0}
+.note{font-size:13px;color:var(--muted);margin:8px 0 0}
+.neg{color:#ff8f8f}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:6px}
+.grid3 label{font-size:12px;color:var(--muted);display:grid;gap:4px}
+.dbars{display:grid;grid-template-columns:auto 1fr auto;gap:8px 10px;align-items:center;font-size:14px}
+.dbars .t{position:relative;height:12px;background:var(--s2);border-radius:6px}
+.dbars .t::after{content:"";position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:var(--axis)}
+.dbars .t i{position:absolute;top:0;bottom:0;border-radius:6px}
+.dbars .val{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.dbars small{display:block;color:var(--muted);font-size:11px;font-weight:400}
+.pgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.pgrid .wd{font-size:10px;color:var(--muted);text-align:center}
+.pcell{min-height:46px;border-radius:8px;box-shadow:inset 0 0 0 1px var(--line);padding:3px 4px;font-size:10px;color:var(--ink2);display:flex;flex-direction:column;justify-content:space-between}
+.pcell.has{box-shadow:none;color:rgba(255,255,255,.8)}
+.pcell b{font-size:11px;color:#fff;text-align:right;font-variant-numeric:tabular-nums}
+.rec{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:14px;color:var(--ink2)}
+.rec:first-of-type{border-top:0}
+.rec b{color:var(--ink);text-align:right}
+.botrow{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.botrow:first-of-type{border-top:0}
+.botrow .n{flex:1;min-width:0;font-weight:600}
+.botrow .n small{display:block;color:var(--muted);font-weight:400;font-size:12px}
+#tabs{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:space-around;background:rgba(18,18,17,.9);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom));z-index:10}
+#tabs button{flex:1;min-width:0;background:none;border:0;color:var(--muted);font:inherit;font-size:10px;display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 0}
+#tabs .i{font-size:22px;filter:grayscale(1);opacity:.55;transition:.15s}
+#tabs button.on{color:var(--ink)}
+#tabs button.on .i{filter:drop-shadow(0 0 6px rgba(144,133,233,.7));opacity:1}
+#toast{position:fixed;left:50%;top:calc(12px + env(safe-area-inset-top));transform:translate(-50%,-150%);background:#2c2c2a;border:1px solid rgba(250,178,25,.5);box-shadow:0 10px 30px rgba(0,0,0,.6),0 0 24px -6px rgba(250,178,25,.6);color:#fff;padding:12px 16px;border-radius:14px;font-weight:600;font-size:15px;transition:transform .35s cubic-bezier(.2,.9,.3,1.3);z-index:20;max-width:calc(100% - 32px);text-align:center}
+#toast.show{transform:translate(-50%,0)}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
+.pop{animation:pop .25s}
+</style>
+</head>
+<body>
+<main id="view"></main>
+<nav id="tabs">
+  <button data-tab="hoy"><span class="i">🏠</span>Hoy</button>
+  <button data-tab="trends"><span class="i">📈</span>Análisis</button>
+  <button data-tab="sport"><span class="i">🏃</span>Deporte</button>
+  <button data-tab="money"><span class="i">💶</span>Dinero</button>
+  <button data-tab="trading"><span class="i">📊</span>Trading</button>
+  <button data-tab="me"><span class="i">🏆</span>Yo</button>
+</nav>
+<div id="toast"></div>
+<input type="file" id="importFile" accept="application/json,.json" hidden>
+<script>
+'use strict';
+/* ---------- utilidades ---------- */
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = () => Math.random().toString(36).slice(2, 9);
+const pad = n => String(n).padStart(2, '0');
+const keyOf = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const parseKey = k => { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d); };
+const addDays = (k, n) => { const d = parseKey(k); d.setDate(d.getDate() + n); return keyOf(d); };
+const today = () => keyOf(new Date());
+const range = (end, n) => Array.from({ length: n }, (_, i) => addDays(end, i - n + 1));
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const avg = a => { const v = a.filter(x => x != null); return v.length ? v.reduce((s, x) => s + x, 0) / v.length : null; };
+const nf = (v, dec = 1) => v == null ? '—' : Number(v).toLocaleString('es-ES', { maximumFractionDigits: dec });
+const eur = (v, dec = 2) => Number(v).toLocaleString('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: dec, minimumFractionDigits: dec === 0 ? 0 : 2 });
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+const MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sept', 'oct', 'nov', 'dic'];
+const MESL = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+const DOW = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+const fmtShort = k => { const d = parseKey(k); return `${d.getDate()} ${MES[d.getMonth()]}`; };
+const fmtLong = k => { const d = parseKey(k); return `${DOW[d.getDay()]} ${d.getDate()} de ${MESL[d.getMonth()]}`; };
+const gauss = () => { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
+
+const AREAS = {
+  salud: { n: 'Salud', c: '#199e70', e: '💪' },
+  mente: { n: 'Mente', c: '#9085e9', e: '🧠' },
+  dinero: { n: 'Dinero', c: '#c98500', e: '💶' },
+  habitos: { n: 'Hábitos', c: '#3987e5', e: '🎯' },
+};
+const AREA_KEYS = Object.keys(AREAS);
+const MOODS = ['😣', '😕', '😐', '🙂', '😄'];
+const LEVEL_TITLES = ['Novato', 'Aprendiz', 'Constante', 'Enfocado', 'Disciplinado', 'Imparable', 'Maestro', 'Leyenda'];
+
+/* ---------- estado ---------- */
+const KEY = 'vida.v1';
+const mk = list => list.map(([name, emoji]) => ({ id: uid(), name, emoji }));
+function defaults() {
+  return {
+    goals: { sleep: 8, water: 8, steps: 8000, exercise: 30 },
+    budget: 1200,
+    habits: mk([['Leer', '📚'], ['Meditar', '🧘'], ['Sin pantallas 23h', '📵'], ['Fruta y verdura', '🥗'], ['Estirar', '🤸']]),
+    expenseCats: mk([['Súper', '🛒'], ['Restaurantes', '🍽️'], ['Transporte', '🚌'], ['Casa', '🏠'], ['Ocio', '🎉'], ['Compras', '🛍️'], ['Salud', '💊'], ['Deudas', '💳'], ['Otros', '📦']]),
+    incomeCats: mk([['Nómina', '💼'], ['Trading', '📊'], ['Extra', '✨'], ['Otros', '💰']]),
+    custom: [],
+    goalsList: [],
+    sports: [{ id: 'run', name: 'Correr', emoji: '🏃' }, { id: 'gym', name: 'Gimnasio', emoji: '🏋️' }, { id: 'bike', name: 'Bici', emoji: '🚴' }, { id: 'swim', name: 'Natación', emoji: '🏊' }, { id: 'hike', name: 'Senderismo', emoji: '🥾' }],
+    shoes: [],
+    runWeekly: 15,
+    debtAsExpense: true,
+    accounts: [],
+    setups: mk([['Breakout', '💥'], ['Pullback', '↩️'], ['Reversión', '🔄'], ['Rango', '📦'], ['Tendencia', '📈'], ['Noticias', '📰']]),
+    tradeCur: 'USD',
+    maxDailyLoss: 0,
+  };
+}
+let S;
+function normalize(s) {
+  const d = defaults();
+  s.days = s.days || {};
+  s.debts = s.debts || [];
+  s.config = Object.assign(d, s.config || {});
+  s.config.goals = Object.assign(defaults().goals, s.config.goals || {});
+  return s;
+}
+function load() {
+  try { S = JSON.parse(localStorage.getItem(KEY)); } catch (e) { S = null; }
+  S = normalize(S && S.days ? S : { v: 1, days: {}, demo: false, welcomed: false });
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(S)); }
+  catch (e) { toast('⚠️ No se pudo guardar. Exporta una copia desde Yo.'); }
+}
+let saveT;
+const saveSoon = () => { clearTimeout(saveT); saveT = setTimeout(save, 300); };
+
+const U = { tab: 'hoy', cur: today(), range: 30, calMetric: 'score', calYear: new Date().getFullYear(), sel: null, month: today().slice(0, 7), txType: 'out', txCat: null, txAmt: '', txNote: '', explore: 'score',
+  statsView: 'charts', moneyView: 'month', sport: 'all', wk: null, wkOpen: false, debtAmt: {}, tr: null, trOpen: false, trAcc: 'all', trMonth: today().slice(0, 7), habitEdit: false };
+const num = s => parseFloat(String(s ?? '').trim().replace(',', '.'));
+function setU(p, v) { const parts = p.split('.'); let o = U; for (let i = 0; i < parts.length - 1; i++) o = o[parts[i]] = o[parts[i]] || {}; o[parts[parts.length - 1]] = v; }
+
+/* ---------- datos derivados ---------- */
+function hasData(d) {
+  if (!d) return false;
+  for (const v of Object.values(d)) {
+    if (v == null || v === '' || v === false) continue;
+    if (Array.isArray(v)) { if (v.length) return true; continue; }
+    if (typeof v === 'object') { if (Object.values(v).some(x => x != null && x !== false && x !== '')) return true; continue; }
+    return true;
+  }
+  return false;
+}
+const sumTx = (d, type) => (d?.tx || []).filter(t => t.type === type).reduce((a, t) => a + t.amount, 0);
+const moneyLogged = d => !!(d && ((d.tx && d.tx.length) || d.noSpend));
+function habitPct(d) {
+  const h = S.config.habits;
+  if (!h.length) return null;
+  return h.filter(x => d?.habits?.[x.id]).length / h.length;
+}
+function scores(d) {
+  if (!d) return { salud: 0, mente: 0, dinero: 0, habitos: 0, total: 0 };
+  const g = S.config.goals, r = (v, t) => v == null ? 0 : Math.min(1, v / t);
+  const salud = (r(d.sleep, g.sleep) + r(d.water, g.water) + r(d.exercise, g.exercise) + r(d.steps, g.steps)) / 4;
+  // Mente: la mitad por registrar, la otra mitad por cómo estás
+  const m = (v, inv) => v == null ? 0 : .5 + .5 * (inv ? 5 - v : v - 1) / 4;
+  const mente = (m(d.mood) + m(d.energy) + m(d.stress, true)) / 3;
+  let dinero = 0;
+  if (moneyLogged(d)) {
+    const sp = sumTx(d, 'out'), daily = S.config.budget / 30.4;
+    dinero = sp <= daily ? 1 : Math.max(.3, daily / sp);
+  }
+  const habitos = habitPct(d) || 0;
+  return { salud, mente, dinero, habitos, total: (salud + mente + dinero + habitos) / 4 };
+}
+function metrics() {
+  const L = [
+    { id: 'score', n: 'Puntuación del día', u: '%', a: 'habitos', get: d => hasData(d) ? Math.round(scores(d).total * 100) : null, min: 0, max: 100, dec: 0 },
+    { id: 'sleep', n: 'Sueño', u: 'h', a: 'salud', get: d => d?.sleep },
+    { id: 'exercise', n: 'Ejercicio', u: 'min', a: 'salud', get: d => d?.exercise, dec: 0 },
+    { id: 'steps', n: 'Pasos', u: '', a: 'salud', get: d => d?.steps, dec: 0 },
+    { id: 'water', n: 'Agua', u: 'vasos', a: 'salud', get: d => d?.water, dec: 0 },
+    { id: 'weight', n: 'Peso', u: 'kg', a: 'salud', get: d => d?.weight },
+    { id: 'mood', n: 'Ánimo', u: '/5', a: 'mente', get: d => d?.mood, min: 1, max: 5 },
+    { id: 'energy', n: 'Energía', u: '/5', a: 'mente', get: d => d?.energy, min: 1, max: 5 },
+    { id: 'stress', n: 'Estrés', u: '/5', a: 'mente', get: d => d?.stress, min: 1, max: 5 },
+    { id: 'spent', n: 'Gasto', u: '€', a: 'dinero', get: d => moneyLogged(d) ? sumTx(d, 'out') : null, dec: 2 },
+    { id: 'habits', n: 'Hábitos cumplidos', u: '%', a: 'habitos', get: d => { if (!hasData(d)) return null; const p = habitPct(d); return p == null ? null : Math.round(p * 100); }, min: 0, max: 100, dec: 0 },
+    { id: 'km', n: 'Km de deporte', nl: 'km de deporte', u: 'km', a: 'salud', get: d => d?.workouts?.length ? sumBy(d.workouts, w => w.dist) : (hasData(d) ? 0 : null) },
+    { id: 'trade', n: 'P&L de trading', nl: 'P&L de trading', u: S.config.tradeCur, a: 'dinero', get: d => d?.trades?.length ? sumBy(d.trades, t => t.pnl) : null, dec: 2 },
+  ];
+  for (const c of S.config.custom) {
+    const get = c.type === 'bool' ? (d => d?.custom?.[c.id] ? 1 : (hasData(d) ? 0 : null)) : (d => d?.custom?.[c.id]);
+    L.push({ id: 'c_' + c.id, n: c.name, u: c.type === 'scale' ? '/5' : c.type === 'bool' ? '' : (c.unit || ''), a: c.area, get, min: c.type === 'scale' ? 1 : c.type === 'bool' ? 0 : undefined, max: c.type === 'scale' ? 5 : c.type === 'bool' ? 1 : undefined, custom: c });
+  }
+  return L;
+}
+const metricById = id => metrics().find(m => m.id === id) || metrics()[0];
+
+function streak(test) {
+  let k = today();
+  if (!test(S.days[k])) k = addDays(k, -1);
+  let n = 0;
+  while (test(S.days[k])) { n++; k = addDays(k, -1); }
+  return n;
+}
+function bestStreak(test) {
+  const ks = Object.keys(S.days).sort();
+  let best = 0, cur = 0, prev = null;
+  for (const k of ks) {
+    if (test(S.days[k])) { cur = prev && addDays(prev, 1) === k ? cur + 1 : 1; prev = k; best = Math.max(best, cur); }
+    else { cur = 0; prev = null; }
+  }
+  return best;
+}
+function achievements() {
+  const ks = Object.keys(S.days).filter(k => hasData(S.days[k])).sort();
+  const D = ks.map(k => S.days[k]), n = ks.length, g = S.config.goals;
+  const best = bestStreak(hasData);
+  const cnt = f => D.filter(f).length;
+  const run = f => bestStreak(d => hasData(d) && f(d));
+  const byMonth = {};
+  for (const k of ks) { const m = k.slice(0, 7); if (m === today().slice(0, 7)) continue; const d = S.days[k]; if (!moneyLogged(d)) continue; (byMonth[m] = byMonth[m] || { days: 0, sp: 0 }); byMonth[m].days++; byMonth[m].sp += sumTx(d, 'out'); }
+  const saver = Object.values(byMonth).some(m => m.days >= 20 && m.sp <= S.config.budget);
+  const runs = allOf('workouts').filter(w => w.sport === 'run'), TR = allOf('trades');
+  let greenBest = 0, greenCur = 0;
+  for (const k of ks) { const t = S.days[k].trades; if (!t?.length) continue; greenCur = sumBy(t, x => x.pnl) > 0 ? greenCur + 1 : 0; greenBest = Math.max(greenBest, greenCur); }
+  return [
+    { e: '🌱', n: 'Primer paso', t: 'Tu primer check-in', ok: n >= 1 },
+    { e: '🔥', n: 'Calentando', t: 'Racha de 3 días', ok: best >= 3 },
+    { e: '⚡', n: 'Semana redonda', t: 'Racha de 7 días', ok: best >= 7 },
+    { e: '🌙', n: 'Mes de hierro', t: 'Racha de 30 días', ok: best >= 30 },
+    { e: '💎', n: 'Centenario', t: 'Racha de 100 días', ok: best >= 100 },
+    { e: '📅', n: 'Cincuentena', t: '50 días registrados', ok: n >= 50 },
+    { e: '🌟', n: 'Día perfecto', t: 'Puntuación del día ≥ 90%', ok: D.some(d => scores(d).total >= .9) },
+    { e: '🎯', n: 'Pleno', t: 'Todos los hábitos en un día', ok: D.some(d => habitPct(d) === 1) },
+    { e: '😴', n: 'Bella durmiente', t: `Dormir ${nf(g.sleep)}h+ 7 días seguidos`, ok: run(d => d.sleep >= g.sleep) >= 7 },
+    { e: '💧', n: 'Hidratación', t: 'Meta de agua 7 días seguidos', ok: run(d => d.water >= g.water) >= 7 },
+    { e: '🏃', n: 'En movimiento', t: 'Meta de ejercicio 10 días', ok: cnt(d => d.exercise >= g.exercise) >= 10 },
+    { e: '👣', n: 'Caminante', t: 'Meta de pasos 20 días', ok: cnt(d => d.steps >= g.steps) >= 20 },
+    { e: '🧘', n: 'Zen', t: 'Estrés ≤ 2 siete días seguidos', ok: run(d => d.stress != null && d.stress <= 2) >= 7 },
+    { e: '😄', n: 'Buena onda', t: 'Ánimo ≥ 4 cinco días seguidos', ok: run(d => d.mood >= 4) >= 5 },
+    { e: '🐷', n: 'Ahorrador', t: 'Un mes completo bajo presupuesto', ok: saver },
+    { e: '✍️', n: 'Escritor', t: '20 notas en el diario', ok: cnt(d => d.note && d.note.trim()) >= 20 },
+    { e: '👟', n: 'Primera salida', t: 'Tu primera carrera', ok: runs.length >= 1 },
+    { e: '🥉', n: '5K', t: 'Correr 5 km seguidos', ok: runs.some(w => w.dist >= 5) },
+    { e: '🥈', n: '10K', t: 'Correr 10 km seguidos', ok: runs.some(w => w.dist >= 10) },
+    { e: '🥇', n: 'Media maratón', t: 'Correr 21,1 km', ok: runs.some(w => w.dist >= 21.09) },
+    { e: '💯', n: 'Centenario runner', t: '100 km corridos en total', ok: sumBy(runs, w => w.dist) >= 100 },
+    { e: '📓', n: 'Diario de trading', t: 'Registrar 10 operaciones', ok: TR.length >= 10 },
+    { e: '🧠', n: 'Trader disciplinado', t: '20 operaciones siguiendo el plan', ok: TR.filter(t => t.plan === true).length >= 20 },
+    { e: '🟩', n: 'Racha verde', t: '5 días de trading seguidos en positivo', ok: greenBest >= 5 },
+    { e: '🎉', n: 'Deuda saldada', t: 'Terminar de pagar una deuda', ok: S.debts.some(x => x.kind === 'owe' && x.moves.length && debtCalc(x).pending <= 0) },
+  ];
+}
+function xpTotal(ach = achievements()) {
+  let x = 0;
+  for (const k in S.days) { const d = S.days[k]; if (hasData(d)) x += 10 + Math.round(scores(d).total * 90); }
+  return x + ach.filter(a => a.ok).length * 100;
+}
+function levelOf(xp) {
+  const L = Math.floor(Math.sqrt(xp / 150)) + 1, a = 150 * (L - 1) ** 2, b = 150 * L ** 2;
+  return { L, pct: (xp - a) / (b - a), toNext: b - xp, title: LEVEL_TITLES[Math.min(LEVEL_TITLES.length - 1, Math.floor((L - 1) / 3))] };
+}
+function checkUnlocks(silent) {
+  const ach = achievements(), ok = ach.filter(a => a.ok).map(a => a.n), lv = levelOf(xpTotal(ach)).L;
+  if (!silent && S.unlocked) {
+    const nw = ach.filter(a => a.ok && !S.unlocked.includes(a.n));
+    if (nw.length) toast(`🏆 ¡Logro desbloqueado! ${nw[0].e} ${nw[0].n}`);
+    else if (S.level && lv > S.level) toast(`⭐ ¡Subes a nivel ${lv}!`);
+  }
+  S.unlocked = ok; S.level = lv; save();
+}
+
+/* ---------- mutaciones ---------- */
+const dayObj = k => S.days[k] || (S.days[k] = {});
+function getVal(d, p) { const [a, b] = p.split('.'); return b ? d?.[a]?.[b] : d?.[a]; }
+function setVal(k, p, v) {
+  const d = dayObj(k), [a, b] = p.split('.');
+  if (b) { d[a] = d[a] || {}; if (v == null || v === '') delete d[a][b]; else d[a][b] = v; }
+  else { if (v == null || v === '') delete d[a]; else d[a] = v; }
+  if (!hasData(d)) delete S.days[k];
+}
+let toastT;
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2600);
+}
+const catList = type => type === 'in' ? S.config.incomeCats : S.config.expenseCats;
+const catOf = (type, id) => catList(type).find(c => c.id === id) || { name: 'Otros', emoji: type === 'in' ? '💰' : '📦' };
+
+/* ---------- gráficos ---------- */
+function niceTicks(min, max, n = 4) {
+  const span = (max - min) || 1, raw = span / n, mag = 10 ** Math.floor(Math.log10(raw));
+  const step = [1, 2, 2.5, 5, 10].map(s => s * mag).find(s => s >= raw);
+  const lo = Math.floor(min / step) * step, hi = Math.ceil(max / step) * step, t = [];
+  for (let v = lo; v <= hi + step / 1e6; v += step) t.push(+v.toFixed(6));
+  return { lo, hi, t };
+}
+function rolling(vals, w) {
+  return vals.map((_, i) => avg(vals.slice(Math.max(0, i - w + 1), i + 1)));
+}
+function barPath(x, y, w, h, r) {
+  r = Math.min(r, h, w / 2);
+  return `M${x},${y + h}V${y + r}Q${x},${y} ${x + r},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h}Z`;
+}
+function hover(el, W, n, xOf, html, onIdx) {
+  const svg = el.querySelector('svg'), tip = el.querySelector('.tip');
+  const move = e => {
+    const r = svg.getBoundingClientRect(), px = (e.clientX - r.left) * W / r.width;
+    let best = 0, bd = 1e9;
+    for (let i = 0; i < n; i++) { const dd = Math.abs(xOf(i) - px); if (dd < bd) { bd = dd; best = i; } }
+    const h = html(best);
+    if (!h) { tip.style.display = 'none'; onIdx && onIdx(null); return; }
+    tip.innerHTML = h; tip.style.display = 'block';
+    const x = xOf(best) * r.width / W, tw = tip.offsetWidth;
+    tip.style.left = clamp(x - tw / 2, 0, r.width - tw) + 'px';
+    onIdx && onIdx(best);
+  };
+  svg.addEventListener('pointerdown', move);
+  svg.addEventListener('pointermove', move);
+  svg.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') { tip.style.display = 'none'; onIdx && onIdx(null); } });
+}
+const legendHTML = series => series.length < 2 ? '' : `<div class="legend">${series.map(s => `<span>${s.dash ? '<i class="dash"></i>' : `<i style="background:${s.color}"></i>`}${esc(s.name)}</span>`).join('')}</div>`;
+
+function mountLine(el, { keys, series, min, max, goal, unit = '', dec = 1, smooth = false, fmt, tickFmt }) {
+  if (!el) return;
+  const W = Math.max(260, el.clientWidth), H = 180, pl = 40, pr = 12, pt = 16, pb = 24;
+  const SS = series.map(s => ({ ...s, vals: smooth ? rolling(s.vals, 7) : s.vals }));
+  const all = SS.flatMap(s => s.vals).filter(v => v != null);
+  if (!all.length) { el.innerHTML = '<div class="empty">Aún no hay datos en este periodo</div>'; return; }
+  let lo = min ?? Math.min(...all, goal ?? Infinity), hi = max ?? Math.max(...all, goal ?? -Infinity);
+  if (min == null || max == null) { const p = (hi - lo) * .12 || 1; const tk = niceTicks(min == null ? lo - p : lo, max == null ? hi + p : hi); if (min == null) lo = Math.max(tk.lo, all.every(v => v >= 0) ? 0 : -Infinity); if (max == null) hi = tk.hi; }
+  const ticks = niceTicks(lo, hi).t.filter(v => v >= lo - 1e-9 && v <= hi + 1e-9);
+  const n = keys.length, iw = W - pl - pr, ih = H - pt - pb;
+  const X = i => pl + (n <= 1 ? iw / 2 : i * iw / (n - 1)), Y = v => pt + ih * (1 - (v - lo) / ((hi - lo) || 1));
+  let g = '';
+  for (const t of ticks) g += `<line x1="${pl}" x2="${W - pr}" y1="${Y(t)}" y2="${Y(t)}" stroke="var(--line)"/><text class="ax" x="${pl - 6}" y="${Y(t) + 3.5}" text-anchor="end">${tickFmt ? tickFmt(t) : nf(t, 1)}</text>`;
+  if (goal != null && goal >= lo && goal <= hi) g += `<line x1="${pl}" x2="${W - pr}" y1="${Y(goal)}" y2="${Y(goal)}" stroke="var(--ink2)" stroke-dasharray="4 4" opacity=".6"/><text class="ax" x="${W - pr}" y="${Y(goal) - 4}" text-anchor="end">meta ${nf(goal)}</text>`;
+  const xi = [...new Set([0, Math.floor((n - 1) / 2), n - 1])];
+  xi.forEach((i, j) => g += `<text class="ax" x="${X(i)}" y="${H - 6}" text-anchor="${j === 0 ? 'start' : j === xi.length - 1 ? 'end' : 'middle'}">${fmtShort(keys[i])}</text>`);
+  for (const s of SS) {
+    let d = '', seg = [];
+    const flush = () => { if (seg.length === 1) g += `<circle cx="${X(seg[0][0])}" cy="${Y(seg[0][1])}" r="3" fill="${s.color}"/>`; seg = []; };
+    s.vals.forEach((v, i) => { if (v == null) { flush(); return; } d += (seg.length ? 'L' : 'M') + X(i).toFixed(1) + ',' + Y(v).toFixed(1); seg.push([i, v]); });
+    flush();
+    if (d) g += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" ${s.dash ? 'stroke-dasharray="4 4"' : ''} style="filter:drop-shadow(0 0 3px ${s.color}88)"/>`;
+  }
+  g += `<g class="cross" style="display:none"><line y1="${pt}" y2="${H - pb}" stroke="var(--ink2)" stroke-width="1"/>${SS.map(s => `<circle r="4.5" fill="${s.color}" stroke="var(--s1)" stroke-width="2"/>`).join('')}</g>`;
+  el.innerHTML = `<div class="cwrap"><svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}">${g}<rect x="${pl - 10}" y="0" width="${iw + 20}" height="${H}" fill="transparent"/></svg><div class="tip"></div></div>${legendHTML(series)}`;
+  const cross = el.querySelector('.cross'), cl = cross.querySelector('line'), cc = cross.querySelectorAll('circle');
+  hover(el, W, n, X, i => {
+    const rows = SS.filter(s => s.vals[i] != null).map(s => `<div><span class="sw" style="background:${s.color}"></span>${SS.length > 1 ? esc(s.name) + ': ' : ''}<b>${fmt ? fmt(s.vals[i]) : nf(s.vals[i], dec) + (unit ? ' ' + unit : '')}</b></div>`);
+    return `<div>${cap(fmtLong(keys[i]))}${smooth ? ' · media 7d' : ''}</div>` + (rows.join('') || '<div style="color:var(--muted)">Sin datos</div>');
+  }, i => {
+    if (i == null) { cross.style.display = 'none'; return; }
+    cross.style.display = ''; cl.setAttribute('x1', X(i)); cl.setAttribute('x2', X(i));
+    SS.forEach((s, j) => { const v = s.vals[i]; cc[j].style.display = v == null ? 'none' : ''; if (v != null) { cc[j].setAttribute('cx', X(i)); cc[j].setAttribute('cy', Y(v)); } });
+  });
+}
+
+function mountBars(el, { labels, series, ref, refLabel, fmt = v => nf(v), tipTitle, allLabels = false }) {
+  if (!el) return;
+  const W = Math.max(260, el.clientWidth), H = 170, pl = 44, pr = 10, pt = 16, pb = 24;
+  const all = series.flatMap(s => s.vals).filter(v => v != null);
+  if (!all.length || (Math.max(...all) === 0 && !ref)) { el.innerHTML = '<div class="empty">Aún no hay datos en este periodo</div>'; return; }
+  const tk = niceTicks(0, Math.max(...all, ref || 0) * 1.08 || 1), hi = tk.hi;
+  const n = labels.length, m = series.length, iw = W - pl - pr, ih = H - pt - pb, slot = iw / n;
+  const bw = Math.max(2, Math.min(22, (slot - 4) / m - (m > 1 ? 2 : 0)));
+  const Y = v => pt + ih * (1 - v / hi), X = i => pl + i * slot + slot / 2;
+  let g = '';
+  for (const t of tk.t) g += `<line x1="${pl}" x2="${W - pr}" y1="${Y(t)}" y2="${Y(t)}" stroke="${t === 0 ? 'var(--axis)' : 'var(--line)'}"/><text class="ax" x="${pl - 6}" y="${Y(t) + 3.5}" text-anchor="end">${fmt(t)}</text>`;
+  series.forEach((s, j) => s.vals.forEach((v, i) => {
+    if (!v) return;
+    const x = X(i) - (m * bw + (m - 1) * 2) / 2 + j * (bw + 2);
+    g += `<path d="${barPath(x, Y(v), bw, ih * v / hi, 4)}" fill="${s.color}"/>`;
+  }));
+  if (ref) g += `<line x1="${pl}" x2="${W - pr}" y1="${Y(ref)}" y2="${Y(ref)}" stroke="var(--ink2)" stroke-dasharray="4 4" opacity=".7"/><text class="ax" x="${W - pr}" y="${Y(ref) - 4}" text-anchor="end">${esc(refLabel || '')}</text>`;
+  const xi = allLabels ? labels.map((_, i) => i) : [...new Set([0, Math.floor((n - 1) / 2), n - 1])];
+  xi.forEach(i => g += `<text class="ax" x="${X(i)}" y="${H - 6}" text-anchor="middle">${esc(labels[i])}</text>`);
+  g += `<rect class="hl" y="${pt}" height="${ih}" width="${slot}" fill="rgba(255,255,255,.06)" rx="4" style="display:none"/>`;
+  el.innerHTML = `<div class="cwrap"><svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}">${g}<rect x="${pl}" y="0" width="${iw}" height="${H}" fill="transparent"/></svg><div class="tip"></div></div>${legendHTML(series)}`;
+  const hl = el.querySelector('.hl');
+  hover(el, W, n, X, i => `<div>${esc(tipTitle ? tipTitle(i) : labels[i])}</div>` + series.map(s => `<div><span class="sw" style="background:${s.color}"></span>${m > 1 ? esc(s.name) + ': ' : ''}<b>${s.vals[i] == null ? '—' : fmt(s.vals[i], true)}</b></div>`).join(''),
+    i => { if (i == null) { hl.style.display = 'none'; return; } hl.style.display = ''; hl.setAttribute('x', pl + i * slot); });
+}
+
+function mountRadar(el, { axes, series }) {
+  if (!el) return;
+  const W = Math.min(340, Math.max(260, el.clientWidth)), H = W * .86, cx = W / 2, cy = H / 2 + 4, R = W * .3, n = axes.length;
+  const P = (i, v) => { const a = -Math.PI / 2 + i * 2 * Math.PI / n; return [cx + Math.cos(a) * R * v, cy + Math.sin(a) * R * v]; };
+  let g = '';
+  for (const lv of [.25, .5, .75, 1]) g += `<polygon points="${axes.map((_, i) => P(i, lv).join(',')).join(' ')}" fill="none" stroke="${lv === 1 ? 'var(--axis)' : 'var(--line)'}"/>`;
+  axes.forEach((a, i) => {
+    const [x, y] = P(i, 1), [lx, ly] = P(i, 1.2);
+    g += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="var(--line)"/>`;
+    g += `<text x="${lx}" y="${ly + 4}" text-anchor="${Math.abs(lx - cx) < 8 ? 'middle' : lx > cx ? 'start' : 'end'}" style="fill:var(--ink2);font-size:11px">${a.e} ${esc(a.n)}</text>`;
+  });
+  for (const s of series) {
+    const pts = s.vals.map((v, i) => P(i, v ?? 0).join(',')).join(' ');
+    g += `<polygon points="${pts}" fill="${s.dash ? 'none' : s.color}" fill-opacity=".22" stroke="${s.color}" stroke-width="2" ${s.dash ? 'stroke-dasharray="4 4"' : ''} stroke-linejoin="round" style="${s.dash ? '' : `filter:drop-shadow(0 0 6px ${s.color}aa)`}"/>`;
+    if (!s.dash) s.vals.forEach((v, i) => { const [x, y] = P(i, v ?? 0); g += `<circle cx="${x}" cy="${y}" r="3.5" fill="${s.color}" stroke="var(--s1)" stroke-width="2"/>`; });
+  }
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px;display:block;margin:0 auto;overflow:visible">${g}</svg>${legendHTML(series)}`;
+}
+
+function ringsSVG(sc, size = 150) {
+  const sw = 12, gap = 4, c = size / 2;
+  let g = '';
+  AREA_KEYS.forEach((a, i) => {
+    const r = c - sw / 2 - 2 - i * (sw + gap), C = 2 * Math.PI * r, p = clamp(sc[a], 0, 1), col = AREAS[a].c;
+    g += `<circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${col}" stroke-opacity=".16" stroke-width="${sw}"/>`;
+    if (p > .004) g += `<circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${col}" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${(C * p).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 ${c} ${c})" style="filter:drop-shadow(0 0 5px ${col})"/>`;
+  });
+  g += `<text x="${c}" y="${c + 7}" text-anchor="middle" style="fill:#fff;font-size:22px;font-weight:800">${Math.round(sc.total * 100)}</text>`;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="Puntuación ${Math.round(sc.total * 100)}%">${g}</svg>`;
+}
+function mix(hex, t, base = '#1a1a19') {
+  const h = s => [1, 3, 5].map(i => parseInt(s.slice(i, i + 2), 16)), a = h(hex), b = h(base);
+  return '#' + a.map((v, i) => Math.round(b[i] + (v - b[i]) * t).toString(16).padStart(2, '0')).join('');
+}
+const RAMP_T = [.22, .4, .6, .8, 1];
+
+/* ---------- vistas ---------- */
+function stepRow(f, label, val, { step = 1, max = 999, unit = '', def = 0, dec = 1 }) {
+  return `<div class="row"><span class="lbl">${label}</span><div class="stepper">
+    <button data-a="step" data-f="${f}" data-d="${-step}" data-max="${max}" data-def="${def}" aria-label="Menos">−</button>
+    <span class="val">${val == null ? '—' : nf(val, dec) + (unit ? ' ' + unit : '')}</span>
+    <button data-a="step" data-f="${f}" data-d="${step}" data-max="${max}" data-def="${def}" aria-label="Más">+</button></div></div>`;
+}
+function scaleSeg(f, val, labels, emo) {
+  return `<div class="seg ${emo ? 'emo' : ''}">${[1, 2, 3, 4, 5].map(i => `<button class="${val === i ? 'on' : ''}" data-a="set" data-f="${f}" data-v="${i}">${labels ? labels[i - 1] : i}</button>`).join('')}</div>`;
+}
+function customControls(area, d) {
+  return S.config.custom.filter(c => c.area === area).map(c => {
+    const f = 'custom.' + c.id, v = getVal(d, f), label = `${esc(c.emoji)} ${esc(c.name)}`;
+    if (c.type === 'scale') return `<div class="col"><span class="lbl">${label}</span>${scaleSeg(f, v)}</div>`;
+    if (c.type === 'bool') return `<button class="toggle ${v ? 'on' : ''}" data-a="toggle" data-f="${f}" style="--c:var(--${area})"><span>${label}</span><i></i></button>`;
+    return `<div class="row"><span class="lbl">${label}${c.unit ? ` <small>${esc(c.unit)}</small>` : ''}</span><input class="txt num" inputmode="decimal" data-f="${f}" data-num value="${v ?? ''}" placeholder="—"></div>`;
+  }).join('');
+}
+function areaHead(a, extra = '') {
+  return `<h2><span class="dot"></span>${AREAS[a].e} ${AREAS[a].n}${extra}<span class="pct" id="p-${a}"></span></h2>`;
+}
+
+function vHoy() {
+  const k = U.cur, d = S.days[k] || {}, c = S.config, g = c.goals, isToday = k === today();
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent), standalone = navigator.standalone || matchMedia('(display-mode: standalone)').matches;
+  const out = sumTx(d, 'out');
+  const monthKeys = Object.keys(S.days).filter(x => x.startsWith(k.slice(0, 7)));
+  const monthSpent = monthKeys.reduce((s, x) => s + sumTx(S.days[x], 'out'), 0);
+  if (!U.txCat || !catList(U.txType).some(x => x.id === U.txCat)) U.txCat = catList(U.txType)[0]?.id;
+  const water = d.water || 0, wmax = Math.max(g.water, water + (water >= g.water ? 1 : 0));
+  return `
+  ${S.demo ? `<div class="banner">🧪 Estás viendo datos de ejemplo<button data-a="clearDemo">Borrar y empezar</button></div>` : ''}
+  ${isIOS && !standalone && !S.hideInstall ? `<div class="banner" style="background:rgba(57,135,229,.12);border-color:rgba(57,135,229,.45);color:#b9d4f7">📲 Instálala: <b>Compartir</b> → <b>Añadir a pantalla de inicio</b><button data-a="hideInstall" style="background:#3987e5;color:#fff">OK</button></div>` : ''}
+  <div class="datenav">
+    <button data-a="day" data-v="-1" aria-label="Día anterior">‹</button>
+    <div><b>${isToday ? 'Hoy' : cap(DOW[parseKey(k).getDay()])}</b><small>${fmtLong(k)}</small></div>
+    <button data-a="day" data-v="1" ${isToday ? 'disabled' : ''} aria-label="Día siguiente">›</button>
+  </div>
+  <div id="hero"></div>
+  ${!S.welcomed && !Object.keys(S.days).length ? `<section class="card welcome"><h2>👋 Te damos la bienvenida</h2><p>Cada día rellena las 4 áreas en menos de un minuto y mira cómo se cierran los anillos. Todo se guarda solo en este móvil.</p><div class="btns"><button class="btn primary" data-a="start">Empezar</button><button class="btn" data-a="demo">Ver ejemplo</button></div></section>` : ''}
+
+  <section class="card" style="--c:var(--salud)">
+    ${areaHead('salud')}
+    ${stepRow('sleep', '😴 Sueño', d.sleep, { step: .5, max: 16, unit: 'h', def: g.sleep - .5 })}
+    <div class="col">
+      <div style="display:flex;justify-content:space-between;align-items:center"><span class="lbl">🏃 Ejercicio</span><b>${d.exercise == null ? '—' : d.exercise + ' min'}</b></div>
+      <div class="chips">${[0, 15, 30, 45, 60, 90, 120].map(m => `<button class="chip ${d.exercise === m ? 'on' : ''}" data-a="set" data-f="exercise" data-v="${m}">${m === 0 ? 'Nada' : m + '′'}</button>`).join('')}</div>
+    </div>
+    <div class="col">
+      <div style="display:flex;justify-content:space-between;align-items:center"><span class="lbl">🏅 Entrenos</span><button class="chip" data-a="goSport">＋ Registrar entreno</button></div>
+      ${(d.workouts || []).map(w => `<div class="note" style="color:var(--ink2)">${wkLine(w)}</div>`).join('')}
+    </div>
+    <div class="col">
+      <div style="display:flex;justify-content:space-between;align-items:center"><span class="lbl">💧 Agua</span><b>${water}/${g.water} vasos</b></div>
+      <div class="drops">${Array.from({ length: wmax }, (_, i) => `<button class="${i < water ? 'on' : ''}" data-a="water" data-v="${i + 1}" aria-label="${i + 1} vasos">💧</button>`).join('')}</div>
+    </div>
+    <div class="row"><span class="lbl">👣 Pasos <small>meta ${nf(g.steps, 0)}</small></span><input class="txt num" inputmode="numeric" data-f="steps" data-num value="${d.steps ?? ''}" placeholder="—"></div>
+    <div class="row"><span class="lbl">⚖️ Peso <small>kg</small></span><input class="txt num" inputmode="decimal" data-f="weight" data-num value="${d.weight != null ? String(d.weight).replace('.', ',') : ''}" placeholder="—"></div>
+    ${customControls('salud', d)}
+  </section>
+
+  <section class="card" style="--c:var(--mente)">
+    ${areaHead('mente')}
+    <div class="col" style="border:0;padding-top:0"><span class="lbl">Ánimo</span>${scaleSeg('mood', d.mood, MOODS, true)}</div>
+    <div class="col"><span class="lbl">⚡ Energía</span>${scaleSeg('energy', d.energy)}<div class="scale-cap"><span>agotado</span><span>a tope</span></div></div>
+    <div class="col"><span class="lbl">🌪️ Estrés</span>${scaleSeg('stress', d.stress)}<div class="scale-cap"><span>tranquilo</span><span>desbordado</span></div></div>
+    ${customControls('mente', d)}
+    <div class="col"><span class="lbl">📝 Diario</span><textarea class="txt" data-f="note" placeholder="¿Qué ha pasado hoy?" style="margin-top:8px">${esc(d.note)}</textarea></div>
+    <div class="col"><span class="lbl">🙏 Agradezco…</span><input class="txt" data-f="gratitude" value="${esc(d.gratitude)}" placeholder="Algo bueno de hoy" style="margin-top:8px"></div>
+  </section>
+
+  <section class="card" style="--c:var(--dinero)">
+    ${areaHead('dinero')}
+    <div class="seg" style="margin-top:0;--c:${U.txType === 'in' ? '#0ca30c' : 'var(--dinero)'}">
+      <button class="${U.txType === 'out' ? 'on' : ''}" data-a="txType" data-v="out">− Gasto</button>
+      <button class="${U.txType === 'in' ? 'on' : ''}" data-a="txType" data-v="in">+ Ingreso</button>
+    </div>
+    <div class="amount"><input class="txt" id="txAmt" inputmode="decimal" placeholder="0,00" value="${esc(U.txAmt)}"><span>€</span></div>
+    <div class="chips">${catList(U.txType).map(x => `<button class="chip ${U.txCat === x.id ? 'on' : ''}" data-a="txCat" data-v="${x.id}">${esc(x.emoji)} ${esc(x.name)}</button>`).join('')}</div>
+    <input class="txt" id="txNote" placeholder="Nota (opcional)" value="${esc(U.txNote)}" style="margin-top:8px">
+    <button class="btn primary full" data-a="txAdd">Añadir ${U.txType === 'in' ? 'ingreso' : 'gasto'}</button>
+    <div style="margin-top:10px">${(d.tx || []).map(t => { const ct = catOf(t.type, t.cat); return `<div class="tx"><span class="e">${esc(ct.emoji)}</span><span class="n">${esc(ct.name)}${t.note ? `<small>${esc(t.note)}</small>` : ''}</span><b class="${t.type === 'in' ? 'in' : ''}">${t.type === 'in' ? '+' : '−'}${eur(t.amount)}</b><button class="x" data-a="txDel" data-v="${t.id}" aria-label="Borrar">×</button></div>`; }).join('')}</div>
+    ${out === 0 ? `<button class="toggle ${d.noSpend ? 'on' : ''}" data-a="toggle" data-f="noSpend"><span>🙌 Hoy no he gastado nada</span><i></i></button>` : ''}
+    <div style="margin-top:14px">
+      <div class="bar"><i style="width:${Math.min(100, monthSpent / c.budget * 100)}%;background:${monthSpent > c.budget ? 'var(--bad)' : 'var(--dinero)'}"></i></div>
+      <div class="meta"><span>${cap(MESL[parseKey(k).getMonth()])}: ${eur(monthSpent, 0)} de ${eur(c.budget, 0)}</span><span>${monthSpent > c.budget ? '⛔ superado' : Math.round(monthSpent / c.budget * 100) + '%'}</span></div>
+    </div>
+  </section>
+
+  <section class="card" style="--c:var(--habitos)">
+    ${areaHead('habitos')}
+    ${U.habitEdit ? `${listEditor('habits', '', 'Nuevo hábito (ej. Correr, Leer 20 min…)')}<button class="btn primary full" data-a="habitEdit">✔️ Listo</button>` : `
+    ${c.habits.length ? `<div class="habits">${c.habits.map(h => { const on = !!d.habits?.[h.id]; const st = streak(x => x?.habits?.[h.id]); return `<button class="habit ${on ? 'on' : ''}" data-a="habit" data-v="${h.id}"><span class="e">${esc(h.emoji)}</span><span>${esc(h.name)}<small>${st ? `🔥 ${st} ${st === 1 ? 'día' : 'días'}` : 'sin racha'}</small></span></button>`; }).join('')}</div>` : '<p class="note">Aún no tienes hábitos. Toca «Editar hábitos» para crear los tuyos.</p>'}
+    <button class="chip" data-a="habitEdit" style="margin-top:10px">✏️ Editar hábitos</button>`}
+    ${customControls('habitos', d)}
+  </section>`;
+}
+function renderHero() {
+  const el = $('#hero'); if (!el) return;
+  const sc = scores(S.days[U.cur]), ach = achievements(), xp = xpTotal(ach), lv = levelOf(xp), st = streak(hasData);
+  el.innerHTML = `<section class="card hero"><div class="rings">${ringsSVG(sc)}</div>
+    <div class="hleg">${AREA_KEYS.map(a => `<div class="hl" style="--c:${AREAS[a].c}"><span class="dot"></span><span>${AREAS[a].n}</span><b>${Math.round(sc[a] * 100)}%</b></div>`).join('')}</div></section>
+    <div class="pillrow"><span class="pill">🔥 <b>${st}</b> ${st === 1 ? 'día' : 'días'} de racha</span><span class="pill">⭐ Nivel <b>${lv.L}</b> · ${lv.title}</span><span class="pill">🏆 <b>${ach.filter(a => a.ok).length}</b>/${ach.length}</span>${(() => { const t = S.days[U.cur]?.trades; if (!t?.length) return ''; const p = sumBy(t, x => x.pnl); return `<span class="pill">📊 <b class="${pnlCls(p)}">${tm(p, true, 0)}</b> trading</span>`; })()}</div>
+    <div class="xpbox"><div class="xp"><i style="width:${(lv.pct * 100).toFixed(1)}%"></i></div><small>${nf(xp, 0)} XP · faltan ${nf(lv.toNext, 0)} para el nivel ${lv.L + 1}</small></div>`;
+  for (const a of AREA_KEYS) { const p = $('#p-' + a); if (p) p.textContent = Math.round(sc[a] * 100) + '%'; }
+}
+
+function statTile(e, name, cur, prev, unit, dec, goodUp, fmt) {
+  const f = fmt || (v => nf(v, dec));
+  let delta = '<span class="d">sin comparación</span>';
+  if (cur != null && prev != null) {
+    const diff = cur - prev, up = diff > 0, good = Math.abs(diff) < 1e-9 ? null : (up === goodUp);
+    delta = `<span class="d ${good == null ? '' : good ? 'good' : 'bad'}">${Math.abs(diff) < 1e-9 ? '＝ igual' : (up ? '▲ ' : '▼ ') + f(Math.abs(diff))}${fmt ? '' : unit ? ' ' + unit : ''} vs antes</span>`;
+  }
+  return `<div class="tile"><div class="k">${e} ${name}</div><div class="v">${cur == null ? '—' : f(cur)}${cur != null && unit && !fmt ? ` <small>${unit}</small>` : ''}</div>${delta}</div>`;
+}
+function wheelAxes(keys) {
+  const g = S.config.goals, D = keys.map(k => S.days[k]).filter(hasData);
+  const a = f => avg(D.map(f)) ?? 0;
+  return [
+    { e: '😴', n: 'Sueño', v: a(d => d.sleep == null ? null : Math.min(1, d.sleep / g.sleep)) },
+    { e: '🏃', n: 'Actividad', v: a(d => d.exercise == null && d.steps == null ? null : (Math.min(1, (d.exercise || 0) / g.exercise) + Math.min(1, (d.steps || 0) / g.steps)) / 2) },
+    { e: '💧', n: 'Agua', v: a(d => d.water == null ? null : Math.min(1, d.water / g.water)) },
+    { e: '🙂', n: 'Ánimo', v: a(d => d.mood == null ? null : (d.mood - 1) / 4) },
+    { e: '⚡', n: 'Energía', v: a(d => d.energy == null ? null : (d.energy - 1) / 4) },
+    { e: '🌿', n: 'Calma', v: a(d => d.stress == null ? null : (5 - d.stress) / 4) },
+    { e: '💶', n: 'Finanzas', v: a(d => moneyLogged(d) ? scores(d).dinero : null) },
+    { e: '🎯', n: 'Hábitos', v: a(d => habitPct(d)) },
+  ];
+}
+function pearson(xs, ys) {
+  const n = xs.length, mx = xs.reduce((a, b) => a + b) / n, my = ys.reduce((a, b) => a + b) / n;
+  let sxy = 0, sx = 0, sy = 0;
+  for (let i = 0; i < n; i++) { const a = xs[i] - mx, b = ys[i] - my; sxy += a * b; sx += a * a; sy += b * b; }
+  return sxy / Math.sqrt(sx * sy);
+}
+function correlations(keys) {
+  const ms = metrics().filter(m => !['score', 'weight'].includes(m.id)), out = [];
+  for (let i = 0; i < ms.length; i++) for (let j = i + 1; j < ms.length; j++) {
+    const xs = [], ys = [];
+    for (const k of keys) { const d = S.days[k]; if (!hasData(d)) continue; const a = ms[i].get(d), b = ms[j].get(d); if (a != null && b != null) { xs.push(a); ys.push(b); } }
+    if (xs.length < 7) continue;
+    const r = pearson(xs, ys);
+    if (isFinite(r) && Math.abs(r) >= .3) out.push({ a: ms[i], b: ms[j], r, n: xs.length });
+  }
+  return out.sort((x, y) => Math.abs(y.r) - Math.abs(x.r)).slice(0, 5);
+}
+function vTrends() {
+  const n = U.range, keys = range(today(), n), prevKeys = range(addDays(today(), -n), n);
+  const D = keys.map(k => S.days[k]), P = prevKeys.map(k => S.days[k]);
+  const mA = (arr, f) => avg(arr.map(d => hasData(d) ? f(d) : null));
+  const spentSum = arr => { const l = arr.filter(moneyLogged); return l.length ? l.reduce((s, d) => s + sumTx(d, 'out'), 0) : null; };
+  const corr = correlations(range(today(), Math.max(n, 30)));
+  const logged = D.filter(hasData).length;
+  return `<div class="rangeseg">${[[7, '7 días'], [30, '30 días'], [90, '3 meses'], [365, '1 año']].map(([v, l]) => `<button class="${n === v ? 'on' : ''}" data-a="range" data-v="${v}">${l}</button>`).join('')}</div>
+  <p class="sub">${logged} de ${n} días registrados${n >= 90 ? ' · líneas suavizadas (media de 7 días)' : ''}</p>
+  <div class="tiles">
+    ${statTile('😴', 'Sueño medio', mA(D, d => d.sleep), mA(P, d => d.sleep), 'h', 1, true)}
+    ${statTile('🙂', 'Ánimo medio', mA(D, d => d.mood), mA(P, d => d.mood), '/5', 1, true)}
+    ${statTile('👣', 'Pasos/día', mA(D, d => d.steps), mA(P, d => d.steps), '', 0, true)}
+    ${statTile('💶', 'Gastado', spentSum(D), spentSum(P), '', 0, false, v => eur(v, 0))}
+  </div>
+  <section class="card"><h2>⭐ Puntuación diaria</h2><div id="c-score"></div></section>
+  <section class="card"><h2>🧭 Rueda de la vida</h2><p class="sub">Cómo de equilibradas están tus áreas (100% = objetivo cumplido)</p><div id="c-radar"></div><div class="radar-tab" id="radar-tab"></div></section>
+  <section class="card" style="--c:var(--salud)"><h2><span class="dot"></span>😴 Sueño</h2><div id="c-sleep"></div></section>
+  <section class="card" style="--c:var(--mente)"><h2><span class="dot"></span>🧠 Mente</h2><div id="c-mind"></div></section>
+  <section class="card" style="--c:var(--salud)"><h2><span class="dot"></span>👣 Pasos</h2><div id="c-steps"></div></section>
+  <section class="card" style="--c:var(--salud)"><h2><span class="dot"></span>⚖️ Peso</h2><div id="c-weight"></div></section>
+  <section class="card"><h2>🔍 Patrones que he encontrado</h2>
+    ${corr.length ? corr.map(c => {
+      const s = Math.abs(c.r), str = s < .4 ? 'relación leve' : s < .6 ? 'relación moderada' : 'relación fuerte', w = s * 50;
+      return `<div class="corr"><p>Los días con más <b>${esc(c.a.nl || c.a.n.toLowerCase())}</b>, tu <b>${esc(c.b.nl || c.b.n.toLowerCase())}</b> suele ser <b>${c.r > 0 ? 'mayor' : 'menor'}</b>.</p><div class="cbar"><i style="left:${c.r > 0 ? 50 : 50 - w}%;width:${w}%;background:${c.r > 0 ? 'var(--pos)' : 'var(--neg)'}"></i></div><small>${c.r > 0 ? '＋' : '−'} ${str} (r = ${nf(c.r, 2)}) · ${c.n} días</small></div>`;
+    }).join('') + '<p class="note">Una relación no significa que una cosa cause la otra, pero da pistas.</p>' : '<p class="empty">Necesito al menos 7 días con datos para encontrar patrones.</p>'}
+  </section>
+  <section class="card"><h2>📆 Ánimo según el día de la semana</h2><div id="c-dow"></div></section>
+  <section class="card"><h2>🔬 Explorar cualquier métrica</h2>
+    <select class="txt" data-sel="explore">${metrics().map(m => `<option value="${m.id}" ${U.explore === m.id ? 'selected' : ''}>${esc(m.n)}</option>`).join('')}</select>
+    <div id="c-explore" style="margin-top:10px"></div></section>`;
+}
+function mountTrends() {
+  const n = U.range, keys = range(today(), n), sm = n >= 90, g = S.config.goals;
+  const col = id => keys.map(k => metricById(id).get(S.days[k]) ?? null);
+  mountLine($('#c-score'), { keys, series: [{ name: 'Puntuación', color: '#3987e5', vals: col('score') }], min: 0, max: 100, unit: '%', dec: 0, smooth: sm });
+  mountLine($('#c-sleep'), { keys, series: [{ name: 'Sueño', color: AREAS.salud.c, vals: col('sleep') }], goal: g.sleep, unit: 'h', smooth: sm });
+  mountLine($('#c-mind'), { keys, series: [{ name: 'Ánimo', color: '#9085e9', vals: col('mood') }, { name: 'Energía', color: '#c98500', vals: col('energy') }, { name: 'Estrés', color: '#e66767', vals: col('stress') }], min: 1, max: 5, unit: '/5', smooth: sm });
+  mountLine($('#c-steps'), { keys, series: [{ name: 'Pasos', color: AREAS.salud.c, vals: col('steps') }], goal: g.steps, dec: 0, smooth: sm });
+  mountLine($('#c-weight'), { keys, series: [{ name: 'Peso', color: AREAS.salud.c, vals: col('weight') }], unit: 'kg' });
+  const cur = wheelAxes(keys), prev = wheelAxes(range(addDays(today(), -n), n));
+  mountRadar($('#c-radar'), { axes: cur, series: [{ name: `Últimos ${n} días`, color: '#9085e9', vals: cur.map(a => a.v) }, { name: 'Periodo anterior', color: '#898781', dash: true, vals: prev.map(a => a.v) }] });
+  $('#radar-tab').innerHTML = cur.map(a => `<span>${a.e} ${a.n}<b>${Math.round(a.v * 100)}%</b></span>`).join('');
+  const byDow = [1, 2, 3, 4, 5, 6, 0].map(w => avg(range(today(), Math.max(n, 60)).filter(k => parseKey(k).getDay() === w).map(k => S.days[k]?.mood)));
+  mountBars($('#c-dow'), { labels: ['L', 'M', 'X', 'J', 'V', 'S', 'D'], allLabels: true, series: [{ name: 'Ánimo', color: '#9085e9', vals: byDow }], fmt: v => nf(v, 1), tipTitle: i => cap(DOW[[1, 2, 3, 4, 5, 6, 0][i]]) });
+  const m = metricById(U.explore);
+  mountLine($('#c-explore'), { keys, series: [{ name: m.n, color: AREAS[m.a]?.c || '#3987e5', vals: col(m.id) }], min: m.min, max: m.max, unit: m.u === '€' ? '€' : m.u, dec: m.dec ?? 1, smooth: sm });
+}
+
+function vCal() {
+  const m = metricById(U.calMetric), y = U.calYear, col = AREAS[m.a]?.c || '#3987e5';
+  const ks = Object.keys(S.days).filter(k => k.startsWith(y + '-'));
+  const vals = ks.map(k => m.get(S.days[k])).filter(v => v != null);
+  const lo = m.min ?? Math.min(...vals), hi = m.max ?? Math.max(...vals);
+  const colorOf = v => { if (v == null) return null; const t = hi > lo ? (v - lo) / (hi - lo) : 1; return mix(col, RAMP_T[clamp(Math.floor(t * 5), 0, 4)]); };
+  const td = today();
+  let months = '';
+  for (let mo = 0; mo < 12; mo++) {
+    const first = new Date(y, mo, 1), off = (first.getDay() + 6) % 7, dim = new Date(y, mo + 1, 0).getDate();
+    if (keyOf(first) > td) break;
+    let cells = ['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(w => `<span class="wd">${w}</span>`).join('') + '<span></span>'.repeat(off);
+    for (let dd = 1; dd <= dim; dd++) {
+      const k = `${y}-${pad(mo + 1)}-${pad(dd)}`, v = m.get(S.days[k]), c = colorOf(v);
+      cells += `<button class="cell ${c ? 'has' : ''} ${k > td ? 'fut' : ''} ${k === td ? 'today' : ''} ${U.sel === k ? 'sel' : ''}" data-a="calSel" data-v="${k}" style="${c ? `background:${c}` : ''}" aria-label="${dd} ${MESL[mo]}"></button>`;
+    }
+    months = `<div class="month"><h4>${MESL[mo]}</h4><div class="mgrid">${cells}</div></div>` + months;
+  }
+  const logged = ks.filter(k => hasData(S.days[k])).length;
+  let detail = '';
+  if (U.sel) {
+    const d = S.days[U.sel], sc = scores(d);
+    detail = `<section class="card detail"><h2>${cap(fmtLong(U.sel))}</h2>${hasData(d) ? `
+      <div class="kv"><span>⭐ Puntuación <b>${Math.round(sc.total * 100)}%</b></span><span>🙂 Ánimo <b>${d.mood ? MOODS[d.mood - 1] : '—'}</b></span>
+      <span>😴 Sueño <b>${d.sleep != null ? nf(d.sleep) + ' h' : '—'}</b></span><span>👣 Pasos <b>${nf(d.steps, 0)}</b></span>
+      <span>💶 Gasto <b>${moneyLogged(d) ? eur(sumTx(d, 'out')) : '—'}</b></span><span>🎯 Hábitos <b>${habitPct(d) != null ? Math.round(habitPct(d) * 100) + '%' : '—'}</b></span></div>
+      ${d.note ? `<p class="note" style="color:var(--ink2)">“${esc(d.note)}”</p>` : ''}` : '<p class="note">Sin registro este día.</p>'}
+      <button class="btn primary full" data-a="openDay" data-v="${U.sel}">${hasData(d) ? 'Ver / editar este día' : 'Registrar este día'}</button></section>`;
+  }
+  return `<select class="txt" data-sel="calMetric">${metrics().map(x => `<option value="${x.id}" ${U.calMetric === x.id ? 'selected' : ''}>${esc(x.n)}</option>`).join('')}</select>
+  <div class="calbar" style="margin:12px 0">
+    <div class="datenav" style="margin:0;gap:10px"><button data-a="year" data-v="-1" aria-label="Año anterior">‹</button><b style="font-size:20px">${y}</b><button data-a="year" data-v="1" ${y >= new Date().getFullYear() ? 'disabled' : ''} aria-label="Año siguiente">›</button></div>
+    <div class="ramp">${vals.length ? nf(lo, m.dec ?? 1) : 'menos'} ${RAMP_T.map(t => `<i style="background:${mix(col, t)}"></i>`).join('')} ${vals.length ? nf(hi, m.dec ?? 1) : 'más'}</div>
+  </div>
+  <p class="sub">${logged} días registrados en ${y} · mejor racha ${bestStreak(hasData)} días · toca un día para ver el detalle</p>
+  ${detail}
+  <section class="card"><div class="months">${months || '<p class="empty">Nada en este año</p>'}</div></section>`;
+}
+
+function vMoney() {
+  const [y, mo] = U.month.split('-').map(Number), dim = new Date(y, mo, 0).getDate(), td = today(), c = S.config;
+  const keys = Array.from({ length: dim }, (_, i) => `${U.month}-${pad(i + 1)}`);
+  const D = keys.map(k => S.days[k]);
+  const spent = D.reduce((s, d) => s + sumTx(d, 'out'), 0), income = D.reduce((s, d) => s + sumTx(d, 'in'), 0), bal = income - spent;
+  const isCur = U.month === td.slice(0, 7), elapsed = isCur ? parseKey(td).getDate() : dim;
+  const proj = isCur && elapsed > 2 ? spent / elapsed * dim : null;
+  const pct = spent / c.budget;
+  const status = pct > 1 ? ['⛔', 'Presupuesto superado', 'var(--bad)'] : pct > .85 ? ['⚠️', 'Cerca del límite', 'var(--warn)'] : ['✅', 'Vas bien', 'var(--good)'];
+  const byCat = {};
+  D.forEach(d => (d?.tx || []).filter(t => t.type === 'out').forEach(t => byCat[t.cat] = (byCat[t.cat] || 0) + t.amount));
+  const cats = Object.entries(byCat).sort((a, b) => b[1] - a[1]), maxC = cats[0]?.[1] || 1;
+  const txs = keys.slice().reverse().flatMap(k => (S.days[k]?.tx || []).map(t => ({ ...t, k })));
+  return `<div class="datenav" style="margin:4px 0 0"><button data-a="month" data-v="-1" aria-label="Mes anterior">‹</button><div><b style="font-size:20px">${cap(MESL[mo - 1])} ${y}</b></div><button data-a="month" data-v="1" ${isCur ? 'disabled' : ''} aria-label="Mes siguiente">›</button></div>
+  <div class="tiles three">
+    <div class="tile"><div class="k">Gastado</div><div class="v">${eur(spent, 0)}</div></div>
+    <div class="tile"><div class="k">Ingresado</div><div class="v in">${eur(income, 0)}</div></div>
+    <div class="tile"><div class="k">Balance</div><div class="v ${bal >= 0 ? 'in' : ''}" style="${bal < 0 ? 'color:#ff8f8f' : ''}">${bal >= 0 ? '+' : '−'}${eur(Math.abs(bal), 0)}</div></div>
+  </div>
+  <section class="card" style="--c:var(--dinero)"><h2><span class="dot"></span>Presupuesto mensual</h2>
+    <div class="bar"><i style="width:${Math.min(100, pct * 100)}%;background:var(--dinero)"></i>${pct > 1 ? `<i style="flex:1;background:var(--bad)"></i>` : ''}</div>
+    <div class="meta"><span>${eur(spent, 0)} de ${eur(c.budget, 0)} (${Math.round(pct * 100)}%)</span><span style="color:${status[2]}">${status[0]} ${status[1]}</span></div>
+    ${proj != null ? `<p class="note">Al ritmo actual acabarás el mes en <b style="color:${proj > c.budget ? '#ff8f8f' : '#5fd35f'}">${eur(proj, 0)}</b>. Te quedan ${eur(Math.max(0, c.budget - spent), 0)} para ${dim - elapsed} días (${eur(Math.max(0, c.budget - spent) / Math.max(1, dim - elapsed), 0)}/día).</p>` : ''}
+  </section>
+  <section class="card"><h2>📊 Gasto diario</h2><div id="c-daily"></div></section>
+  <section class="card"><h2>🗂️ Por categoría</h2>${cats.length ? `<div class="hbar">${cats.map(([id, v]) => { const ct = catOf('out', id); return `<span>${esc(ct.emoji)} ${esc(ct.name)}</span><div class="t"><i style="width:${v / maxC * 100}%"></i></div><span class="val">${eur(v, 0)} <small style="color:var(--muted)">${Math.round(v / spent * 100)}%</small></span>`; }).join('')}</div>` : '<p class="empty">Sin gastos este mes</p>'}</section>
+  <section class="card"><h2>📅 Últimos 6 meses</h2><div id="c-6m"></div></section>
+  <section class="card"><h2>🧾 Movimientos</h2>${txs.length ? txs.map(t => { const ct = catOf(t.type, t.cat); return `<div class="tx"><span class="e">${esc(ct.emoji)}</span><span class="n">${esc(ct.name)}<small>${fmtShort(t.k)}${t.note ? ' · ' + esc(t.note) : ''}</small></span><b class="${t.type === 'in' ? 'in' : ''}">${t.type === 'in' ? '+' : '−'}${eur(t.amount)}</b><button class="x" data-a="txDel" data-v="${t.id}" data-k="${t.k}" aria-label="Borrar">×</button></div>`; }).join('') : '<p class="empty">Sin movimientos</p>'}</section>`;
+}
+function mountMoney() {
+  const [y, mo] = U.month.split('-').map(Number), dim = new Date(y, mo, 0).getDate();
+  const keys = Array.from({ length: dim }, (_, i) => `${U.month}-${pad(i + 1)}`);
+  mountBars($('#c-daily'), { labels: keys.map(k => String(parseKey(k).getDate())), series: [{ name: 'Gasto', color: '#c98500', vals: keys.map(k => moneyLogged(S.days[k]) ? sumTx(S.days[k], 'out') : null) }], ref: S.config.budget / dim, refLabel: 'presupuesto/día', fmt: (v, tip) => tip ? eur(v) : nf(v, 0) + '€', tipTitle: i => cap(fmtLong(keys[i])) });
+  const ms = Array.from({ length: 6 }, (_, i) => { const d = new Date(y, mo - 6 + i, 1); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}`; });
+  const tot = (m, type) => Object.keys(S.days).filter(k => k.startsWith(m)).reduce((s, k) => s + sumTx(S.days[k], type), 0);
+  mountBars($('#c-6m'), { labels: ms.map(m => MES[+m.slice(5) - 1]), allLabels: true, series: [{ name: 'Gastos', color: '#c98500', vals: ms.map(m => tot(m, 'out')) }, { name: 'Ingresos', color: '#3987e5', vals: ms.map(m => tot(m, 'in')) }], fmt: (v, tip) => tip ? eur(v, 0) : nf(v / 1000, 1) + 'k', tipTitle: i => cap(MESL[+ms[i].slice(5) - 1]) + ' ' + ms[i].slice(0, 4) });
+}
+
+const addRow = (key, hint) => `<div class="addrow"><input class="txt emo" id="add-${key}-e" placeholder="😀"><input class="txt" id="add-${key}-n" placeholder="${hint}"><button class="btn" data-a="listAdd" data-k="${key}">+</button></div>`;
+const delBtn = (a, v, k = '') => `<button class="x icon-btn" style="width:34px;height:34px;font-size:16px;flex:none" data-a="${a}" data-v="${v}" ${k ? `data-k="${k}"` : ''} aria-label="Borrar">×</button>`;
+function listEditor(key, title, hint) {
+  const L = S.config[key];
+  return `${title ? `<h3>${title}</h3>` : ''}${L.map(x => `<div class="list-item"><span>${esc(x.emoji)}</span><span class="n">${esc(x.name)}</span>${delBtn('listDel', x.id, key)}</div>`).join('')}${addRow(key, hint)}`;
+}
+function vMe() {
+  const ach = achievements(), xp = xpTotal(ach), lv = levelOf(xp), c = S.config, g = c.goals;
+  const logged = Object.keys(S.days).filter(k => hasData(S.days[k])).length;
+  const daysSinceBackup = S.lastBackup ? Math.floor((Date.now() - S.lastBackup) / 864e5) : null;
+  const typeName = { scale: 'escala 1-5', number: 'número', bool: 'sí / no' };
+  return `<h1>Yo</h1>
+  <section class="card"><div class="lvl"><div class="big">${lv.L}</div><div style="flex:1"><div class="t">${lv.title}</div><div class="xp" style="margin:8px 0 4px"><i style="width:${(lv.pct * 100).toFixed(1)}%"></i></div><small style="color:var(--muted)">${nf(xp, 0)} XP · faltan ${nf(lv.toNext, 0)}</small></div></div>
+    <div class="tiles" style="grid-template-columns:repeat(4,1fr);margin-bottom:0">${[['📅', logged, 'días'], ['🔥', streak(hasData), 'racha'], ['🏅', bestStreak(hasData), 'mejor'], ['🏆', ach.filter(a => a.ok).length, 'logros']].map(([e, v, l]) => `<div class="tile" style="padding:10px;text-align:center"><div class="v" style="font-size:20px">${e} ${v}</div><div class="d">${l}</div></div>`).join('')}</div></section>
+
+  <section class="card"><h2>🚩 Metas</h2>
+    ${c.goalsList.length ? c.goalsList.map(x => { const p = clamp(x.current / x.target, 0, 1); return `<div class="goal"><div class="top"><span style="font-size:22px">${esc(x.emoji)}</span><span class="n">${esc(x.name)}</span><small>${nf(x.current)} / ${nf(x.target)} ${esc(x.unit)}</small></div>
+      <div class="ctrl"><button class="icon-btn" data-a="goalStep" data-v="${x.id}" data-d="-1" aria-label="Menos">−</button><div class="bar"><i style="width:${p * 100}%;background:${p >= 1 ? 'var(--good)' : 'linear-gradient(90deg,#3987e5,#9085e9)'}"></i></div><b style="min-width:44px;text-align:right">${Math.round(p * 100)}%</b><button class="icon-btn" data-a="goalStep" data-v="${x.id}" data-d="1" aria-label="Más">+</button><button class="x icon-btn" style="background:none;color:var(--muted)" data-a="goalDel" data-v="${x.id}" aria-label="Borrar">×</button></div></div>`; }).join('') : '<p class="note">Metas a largo plazo: leer 20 libros, ahorrar 3.000 €, correr 10 km…</p>'}
+    <div class="grid2"><label>Emoji<input class="txt" id="g-e" placeholder="📚"></label><label>Nombre<input class="txt" id="g-n" placeholder="Leer libros"></label><label>Objetivo<input class="txt" id="g-t" inputmode="decimal" placeholder="20"></label><label>Unidad<input class="txt" id="g-u" placeholder="libros"></label></div>
+    <button class="btn full" data-a="goalAdd">+ Añadir meta</button></section>
+
+  <section class="card"><h2>🏆 Logros</h2><div class="ach">${ach.map(a => `<div class="badge ${a.ok ? 'ok' : ''}"><span class="e">${a.e}</span><b>${a.n}</b>${a.t}</div>`).join('')}</div></section>
+
+  <section class="card"><h2>⚙️ Ajustes</h2>
+    <h3>Objetivos diarios</h3>
+    <div class="grid2">
+      <label>😴 Sueño (h)<input class="txt" inputmode="decimal" data-cfg="goals.sleep" value="${g.sleep}"></label>
+      <label>💧 Agua (vasos)<input class="txt" inputmode="numeric" data-cfg="goals.water" value="${g.water}"></label>
+      <label>👣 Pasos<input class="txt" inputmode="numeric" data-cfg="goals.steps" value="${g.steps}"></label>
+      <label>🏃 Ejercicio (min)<input class="txt" inputmode="numeric" data-cfg="goals.exercise" value="${g.exercise}"></label>
+      <label>💶 Presupuesto/mes (€)<input class="txt" inputmode="decimal" data-cfg="budget" value="${c.budget}"></label>
+    </div>
+    ${listEditor('habits', '🎯 Hábitos', 'Nuevo hábito')}
+    ${listEditor('expenseCats', '🛒 Categorías de gasto', 'Nueva categoría')}
+    ${listEditor('incomeCats', '💼 Categorías de ingreso', 'Nueva categoría')}
+    <h3>🧩 Métricas personalizadas</h3>
+    <p class="note" style="margin-top:0">Registra lo que quieras: café, cigarrillos, meditación, dolor de espalda, horas de estudio…</p>
+    ${c.custom.map(x => `<div class="list-item"><span>${esc(x.emoji)}</span><span class="n">${esc(x.name)} <small>· ${typeName[x.type]} · ${AREAS[x.area].n}</small></span><button class="x icon-btn" style="width:34px;height:34px;font-size:16px" data-a="customDel" data-v="${x.id}" aria-label="Borrar">×</button></div>`).join('')}
+    <div class="grid2">
+      <label>Emoji<input class="txt" id="cm-e" placeholder="☕"></label>
+      <label>Nombre<input class="txt" id="cm-n" placeholder="Cafés"></label>
+      <label>Tipo<select class="txt" id="cm-t"><option value="number">Número</option><option value="scale">Escala 1-5</option><option value="bool">Sí / no</option></select></label>
+      <label>Área<select class="txt" id="cm-a">${['salud', 'mente', 'habitos'].map(a => `<option value="${a}">${AREAS[a].n}</option>`).join('')}</select></label>
+      <label>Unidad (opcional)<input class="txt" id="cm-u" placeholder="tazas"></label>
+    </div>
+    <button class="btn full" data-a="customAdd">+ Añadir métrica</button>
+  </section>
+
+  <section class="card"><h2>💾 Tus datos</h2>
+    <p class="note" style="margin-top:0">Todo se guarda solo en este iPhone, nada sale de él. Haz una copia de vez en cuando y guárdala en Archivos o iCloud por si cambias de móvil o borras Safari.</p>
+    ${daysSinceBackup == null ? '<p class="note" style="color:#ffd37a">⚠️ Aún no has hecho ninguna copia.</p>' : `<p class="note">Última copia: hace ${daysSinceBackup} ${daysSinceBackup === 1 ? 'día' : 'días'}${daysSinceBackup > 14 ? ' — <b style="color:#ffd37a">toca hacer otra</b>' : ''}.</p>`}
+    <div class="btns"><button class="btn primary" data-a="export">⬇️ Exportar copia</button><button class="btn" data-a="import">⬆️ Importar copia</button></div>
+    <div class="btns">${S.demo ? '<button class="btn" data-a="clearDemo">🧪 Borrar datos de ejemplo</button>' : (!Object.keys(S.days).length ? '<button class="btn" data-a="demo">🧪 Cargar datos de ejemplo</button>' : '')}<button class="btn danger" data-a="wipe">🗑️ Borrar todo</button></div>
+    <p class="note">📲 Para instalarla: en Safari toca <b>Compartir</b> → <b>Añadir a pantalla de inicio</b>. Así funciona sin internet y iOS no borra tus datos.</p>
+  </section>`;
+}
+
+/* ---------- utilidades comunes de los módulos ---------- */
+const sumBy = (a, f) => a.reduce((s, x) => s + (f(x) || 0), 0);
+const allOf = field => Object.keys(S.days).sort().flatMap(k => (S.days[k][field] || []).map(x => ({ ...x, k })));
+const weekStart = k => addDays(k, -((parseKey(k).getDay() + 6) % 7));
+const monthYear = d => `${MESL[d.getMonth()]} ${d.getFullYear()}`;
+function ringOne(p, color, big, small, size = 124) {
+  const sw = 12, r = size / 2 - sw / 2 - 2, C = 2 * Math.PI * r, c = size / 2; p = clamp(p || 0, 0, 1);
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="flex:none"><circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${color}" stroke-opacity=".16" stroke-width="${sw}"/>${p > .004 ? `<circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${color}" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${(C * p).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 ${c} ${c})" style="filter:drop-shadow(0 0 5px ${color})"/>` : ''}<text x="${c}" y="${c + 3}" text-anchor="middle" style="fill:#fff;font-size:20px;font-weight:800">${big}</text><text x="${c}" y="${c + 20}" text-anchor="middle" style="fill:var(--muted);font-size:11px">${small}</text></svg>`;
+}
+function sparkSVG(vals, color, w = 96, h = 30) {
+  if (vals.length < 2) return '';
+  const lo = Math.min(...vals), hi = Math.max(...vals), X = i => i * w / (vals.length - 1), Y = v => h - 2 - (h - 4) * (v - lo) / ((hi - lo) || 1);
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="flex:none"><path d="${vals.map((v, i) => (i ? 'L' : 'M') + X(i).toFixed(1) + ',' + Y(v).toFixed(1)).join('')}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round"/></svg>`;
+}
+function divBars(rows, fmt) {
+  const max = Math.max(...rows.map(r => Math.abs(r.v)), 1e-9);
+  return `<div class="dbars">${rows.map(r => `<span>${r.label}</span><div class="t"><i style="${r.v >= 0 ? 'left:50%' : 'right:50%'};width:${Math.abs(r.v) / max * 50}%;background:${r.v >= 0 ? 'var(--good)' : 'var(--bad)'}"></i></div><span class="val ${pnlCls(r.v)}">${fmt(r.v)}${r.sub ? `<small>${r.sub}</small>` : ''}</span>`).join('')}</div>`;
+}
+function ensureCat(list, name, emoji) {
+  let c = S.config[list].find(x => x.name === name);
+  if (!c) { c = { id: uid(), name, emoji }; S.config[list].splice(Math.max(0, S.config[list].length - 1), 0, c); }
+  return c.id;
+}
+
+/* ---------- deporte ---------- */
+const RUN_TYPES = ['Rodaje', 'Series', 'Tirada larga', 'Tempo', 'Cuestas', 'Recuperación', 'Carrera'];
+const FEELS = ['😵', '😓', '😐', '🙂', '🤩'];
+const fmtPace = s => { s = Math.round(s); return `${Math.floor(s / 60)}:${pad(s % 60)}`; };
+const fmtDur = s => { s = Math.round(s); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return h ? `${h}h ${pad(m)}m` : `${m}:${pad(x)}`; };
+const sportOf = id => S.config.sports.find(s => s.id === id) || { name: 'Deporte', emoji: '🏅' };
+const paceOf = w => w.dist > 0 && w.dur > 0 ? w.dur / w.dist : null;
+const wkLine = w => { const sp = sportOf(w.sport), p = paceOf(w); return `${esc(sp.emoji)} ${esc(w.type || sp.name)}${w.dist ? ' · ' + nf(w.dist, 2) + ' km' : ''}${w.dur ? ' · ' + fmtDur(w.dur) : ''}${p ? ' · ' + fmtPace(p) + '/km' : ''}`; };
+const newWk = (keep = {}) => ({ date: U.cur, sport: 'run', type: 'Rodaje', dist: '', h: '', m: '', s: '', feel: null, shoe: '', note: '', ...keep });
+function wkPreview() {
+  const W = U.wk, d = num(W.dist), s = (+W.h || 0) * 3600 + (+W.m || 0) * 60 + (+W.s || 0);
+  return d > 0 && s > 0 ? fmtPace(s / d) + ' /km' : '—';
+}
+function vSport() {
+  const c = S.config; if (!U.wk) U.wk = newWk(); const W = U.wk;
+  const all = allOf('workouts'), f = U.sport, L = all.filter(w => f === 'all' || w.sport === f), runs = all.filter(w => w.sport === 'run');
+  const w0 = weekStart(today()), m0 = today().slice(0, 7);
+  const thisW = L.filter(w => w.k >= w0), thisM = L.filter(w => w.k.startsWith(m0));
+  const km = a => sumBy(a, w => w.dist), secs = a => sumBy(a, w => w.dur);
+  const runKmW = km(runs.filter(w => w.k >= w0));
+  const weeks = {}; runs.forEach(w => { const k = weekStart(w.k); weeks[k] = (weeks[k] || 0) + (w.dist || 0); });
+  let wkStreak = 0; { let k = w0; if ((weeks[k] || 0) < c.runWeekly) k = addDays(k, -7); while ((weeks[k] || 0) >= c.runWeekly) { wkStreak++; k = addDays(k, -7); } }
+  const best = min => { const x = runs.filter(w => w.dist >= min && paceOf(w)); return x.length ? x.reduce((b, w) => paceOf(w) < paceOf(b) ? w : b) : null; };
+  const longest = runs.reduce((b, w) => !b || (w.dist || 0) > (b.dist || 0) ? w : b, null);
+  const bestWeek = Object.entries(weeks).sort((a, b) => b[1] - a[1])[0];
+  const p5 = best(5), p10 = best(10), p21 = best(21.09);
+  const byType = {}; runs.forEach(w => byType[w.type || 'Rodaje'] = (byType[w.type || 'Rodaje'] || 0) + (w.dist || 0));
+  const types = Object.entries(byType).sort((a, b) => b[1] - a[1]), maxT = types[0]?.[1] || 1;
+  const form = `<section class="card" style="--c:var(--salud)"><h2>➕ Nuevo entreno</h2>
+    <div class="chips" style="margin-top:0">${c.sports.map(s => `<button class="chip ${W.sport === s.id ? 'on' : ''}" data-a="wkSet" data-f="sport" data-v="${s.id}">${esc(s.emoji)} ${esc(s.name)}</button>`).join('')}</div>
+    ${W.sport === 'run' ? `<h3>Tipo</h3><div class="chips" style="margin-top:0">${RUN_TYPES.map(t => `<button class="chip ${W.type === t ? 'on' : ''}" data-a="wkSet" data-f="type" data-v="${t}">${t}</button>`).join('')}</div>` : ''}
+    <div class="grid2"><label>📅 Fecha<input type="date" class="txt" data-u="wk.date" value="${W.date}" max="${today()}"></label><label>📏 Distancia (km)<input class="txt" inputmode="decimal" data-u="wk.dist" value="${esc(W.dist)}" placeholder="${W.sport === 'run' ? '5,0' : 'opcional'}"></label></div>
+    <div class="grid3"><label>⏱️ Horas<input class="txt" inputmode="numeric" data-u="wk.h" value="${esc(W.h)}" placeholder="0"></label><label>Minutos<input class="txt" inputmode="numeric" data-u="wk.m" value="${esc(W.m)}" placeholder="30"></label><label>Segundos<input class="txt" inputmode="numeric" data-u="wk.s" value="${esc(W.s)}" placeholder="0"></label></div>
+    <p class="note">⚡ Ritmo: <b id="wkPace" style="color:#fff">${wkPreview()}</b></p>
+    <h3>Sensación</h3><div class="seg emo" style="margin-top:0">${FEELS.map((e, i) => `<button class="${W.feel === i + 1 ? 'on' : ''}" data-a="wkSet" data-f="feel" data-v="${i + 1}">${e}</button>`).join('')}</div>
+    ${W.sport === 'run' && c.shoes.length ? `<h3>👟 Zapatillas</h3><select class="txt" data-u="wk.shoe"><option value="">—</option>${c.shoes.map(s => `<option value="${s.id}" ${W.shoe === s.id ? 'selected' : ''}>${esc(s.emoji)} ${esc(s.name)}</option>`).join('')}</select>` : ''}
+    <input class="txt" data-u="wk.note" value="${esc(W.note)}" placeholder="Nota (opcional): cómo fue, molestias…" style="margin-top:10px">
+    <div class="btns"><button class="btn" data-a="wkClose">Cancelar</button><button class="btn primary" data-a="wkSave">Guardar</button></div></section>`;
+  const rec = (l, v) => `<div class="rec"><span>${l}</span><b>${v}</b></div>`;
+  return `<h1>Deporte</h1>
+  <div class="chips" style="margin-top:0">${[{ id: 'all', name: 'Todos', emoji: '🏅' }, ...c.sports].map(s => `<button class="chip ${f === s.id ? 'on' : ''}" data-a="sportFilter" data-v="${s.id}">${esc(s.emoji)} ${esc(s.name)}</button>`).join('')}</div>
+  ${U.wkOpen ? form : `<button class="btn primary full" style="--c:var(--salud)" data-a="wkOpen">➕ Registrar entreno</button>`}
+  <section class="card hero" style="--c:var(--salud)">${ringOne(runKmW / c.runWeekly, AREAS.salud.c, nf(runKmW, 1), `de ${nf(c.runWeekly)} km`)}
+    <div class="hleg"><div class="hl">🏃 Semana corriendo<b>${nf(runKmW, 1)} km</b></div><div class="hl">🔥 Semanas en objetivo<b>${wkStreak}</b></div><div class="hl">📅 Entrenos semana<b>${thisW.length}</b></div><div class="hl">⏱️ Tiempo semana<b>${fmtDur(secs(thisW))}</b></div></div></section>
+  <div class="tiles">
+    <div class="tile"><div class="k">📏 Km este mes</div><div class="v">${nf(km(thisM), 1)}</div></div>
+    <div class="tile"><div class="k">📅 Entrenos este mes</div><div class="v">${thisM.length}</div></div>
+    <div class="tile"><div class="k">🌍 Km totales</div><div class="v">${nf(km(L), 0)}</div></div>
+    <div class="tile"><div class="k">⏱️ Horas totales</div><div class="v">${nf(secs(L) / 3600, 0)}</div></div>
+  </div>
+  <section class="card"><h2>📊 ${f === 'all' ? 'Minutos' : 'Volumen'} por semana</h2><div id="c-wk"></div></section>
+  ${runs.length ? `
+  <section class="card"><h2>⚡ Ritmo por salida</h2><p class="sub">Últimas 30 carreras · más abajo = más rápido</p><div id="c-pace"></div></section>
+  <section class="card"><h2>📏 Distancia por salida</h2><div id="c-dist"></div></section>
+  <section class="card"><h2>🏆 Récords personales</h2>
+    ${rec('📏 Carrera más larga', longest ? `${nf(longest.dist, 2)} km · ${fmtShort(longest.k)}` : '—')}
+    ${rec('🥉 Mejor ritmo en 5K+', p5 ? `${fmtPace(paceOf(p5))}/km<br><small style="color:var(--muted);font-weight:400">5K en ${fmtDur(paceOf(p5) * 5)}</small>` : 'aún no')}
+    ${rec('🥈 Mejor ritmo en 10K+', p10 ? `${fmtPace(paceOf(p10))}/km<br><small style="color:var(--muted);font-weight:400">10K en ${fmtDur(paceOf(p10) * 10)}</small>` : 'aún no')}
+    ${rec('🥇 Media maratón', p21 ? fmtDur(paceOf(p21) * 21.0975) : 'aún no')}
+    ${rec('📆 Semana con más km', bestWeek ? `${nf(bestWeek[1], 1)} km<br><small style="color:var(--muted);font-weight:400">semana del ${fmtShort(bestWeek[0])}</small>` : '—')}
+    ${rec('🏃 Carreras totales', runs.length)}
+  </section>
+  <section class="card"><h2>🧩 Km por tipo de entreno</h2><div class="hbar">${types.map(([t, v]) => `<span>${esc(t)}</span><div class="t"><i style="width:${v / maxT * 100}%;background:var(--salud)"></i></div><span class="val">${nf(v, 1)} km</span>`).join('')}</div></section>` : ''}
+  <section class="card"><h2>👟 Zapatillas</h2><p class="note" style="margin-top:0">Se suelen cambiar entre 600 y 800 km.</p>
+    ${c.shoes.map(s => { const k = km(runs.filter(w => w.shoe === s.id)); return `<div class="goal"><div class="top"><span style="font-size:20px">${esc(s.emoji)}</span><span class="n">${esc(s.name)}</span><small>${nf(k, 0)} / 700 km</small>${delBtn('listDel', s.id, 'shoes')}</div><div class="bar"><i style="width:${Math.min(100, k / 7)}%;background:${k > 650 ? 'var(--bad)' : k > 550 ? 'var(--warn)' : 'var(--salud)'}"></i></div>${k > 650 ? '<p class="note" style="color:#ff8f8f">⛔ Toca cambiarlas</p>' : k > 550 ? '<p class="note" style="color:#ffd37a">⚠️ Se acercan al final de su vida</p>' : ''}</div>`; }).join('')}
+    ${addRow('shoes', 'Modelo (ej. Pegasus 41)')}</section>
+  <section class="card"><h2>🧾 Historial</h2>${L.length ? L.slice(-40).reverse().map(w => `<div class="tx"><span class="e">${esc(sportOf(w.sport).emoji)}</span><span class="n">${esc(w.type || sportOf(w.sport).name)}<small>${fmtShort(w.k)}${w.dur ? ' · ' + fmtDur(w.dur) : ''}${paceOf(w) ? ' · ' + fmtPace(paceOf(w)) + '/km' : ''}${w.feel ? ' · ' + FEELS[w.feel - 1] : ''}${w.note ? ' · ' + esc(w.note) : ''}</small></span><b>${w.dist ? nf(w.dist, 2) + ' km' : fmtDur(w.dur || 0)}</b><button class="x" data-a="wkDel" data-v="${w.id}" data-k="${w.k}" aria-label="Borrar">×</button></div>`).join('') : '<p class="empty">Aún no hay entrenos. ¡A por el primero!</p>'}</section>
+  <section class="card"><h2>⚙️ Ajustes de deporte</h2>
+    <div class="grid2"><label>🎯 Objetivo semanal corriendo (km)<input class="txt" inputmode="decimal" data-cfg="runWeekly" value="${c.runWeekly}"></label></div>
+    ${listEditor('sports', '🏅 Deportes', 'Nuevo deporte (ej. Pádel)')}</section>`;
+}
+function mountSport() {
+  const c = S.config, f = U.sport, all = allOf('workouts'), L = all.filter(w => f === 'all' || w.sport === f);
+  const useKm = f !== 'all' && L.some(w => w.dist);
+  const weeks = Array.from({ length: 12 }, (_, i) => addDays(weekStart(today()), -7 * (11 - i)));
+  const vals = weeks.map(w => { const a = L.filter(x => x.k >= w && x.k < addDays(w, 7)); return useKm ? sumBy(a, x => x.dist) : sumBy(a, x => x.dur) / 60; });
+  mountBars($('#c-wk'), { labels: weeks.map(fmtShort), series: [{ name: useKm ? 'Km' : 'Minutos', color: AREAS.salud.c, vals }], ref: f === 'run' ? c.runWeekly : null, refLabel: 'objetivo', fmt: (v, tip) => tip ? (useKm ? nf(v, 1) + ' km' : Math.round(v) + ' min') : nf(v, 0), tipTitle: i => 'Semana del ' + fmtShort(weeks[i]) });
+  const runs = all.filter(w => w.sport === 'run' && w.dist).slice(-30);
+  const pr = runs.filter(paceOf);
+  mountLine($('#c-pace'), { keys: pr.map(w => w.k), series: [{ name: 'Ritmo', color: AREAS.salud.c, vals: pr.map(paceOf) }], fmt: v => fmtPace(v) + ' /km', tickFmt: fmtPace });
+  mountBars($('#c-dist'), { labels: runs.map(w => fmtShort(w.k)), series: [{ name: 'Km', color: AREAS.salud.c, vals: runs.map(w => w.dist) }], fmt: (v, tip) => tip ? nf(v, 2) + ' km' : nf(v, 0), tipTitle: i => `${cap(fmtLong(runs[i].k))} · ${runs[i].type || 'Carrera'}` });
+}
+
+/* ---------- deudas ---------- */
+function debtCalc(x) {
+  const add = sumBy(x.moves.filter(m => m.kind === 'add'), m => m.amount), paid = sumBy(x.moves.filter(m => m.kind === 'pay'), m => m.amount), total = x.initial + add;
+  return { total, paid, pending: Math.max(0, total - paid), pct: total ? Math.min(1, paid / total) : 1 };
+}
+function payoff(x, pending) {
+  let m = x.monthly;
+  if (!m) { const since = addDays(today(), -90), recent = sumBy(x.moves.filter(p => p.kind === 'pay' && p.date >= since), p => p.amount); if (recent > 0) m = recent / (90 / 30.4); }
+  if (!m) return null;
+  const i = (x.rate || 0) / 1200; let months;
+  if (i > 0) { if (m <= pending * i) return { never: true }; months = -Math.log(1 - i * pending / m) / Math.log(1 + i); }
+  else months = pending / m;
+  const d = new Date(); d.setMonth(d.getMonth() + Math.ceil(months));
+  return { months: Math.ceil(months), date: d, interest: i > 0 ? m * months - pending : 0 };
+}
+function vDebts() {
+  const owe = S.debts.filter(x => x.kind === 'owe'), owed = S.debts.filter(x => x.kind === 'owed');
+  const T = a => a.reduce((s, x) => { const c = debtCalc(x); s.total += c.total; s.paid += c.paid; s.pending += c.pending; return s; }, { total: 0, paid: 0, pending: 0 });
+  const to = T(owe), tw = T(owed);
+  const open = owe.filter(x => debtCalc(x).pending > 0), pays = open.map(x => payoff(x, debtCalc(x).pending));
+  const free = !owe.length ? null : !open.length ? 'done' : pays.some(p => !p || p.never) ? null : pays.reduce((a, p) => p.date > a ? p.date : a, new Date(0));
+  const card = x => {
+    const c = debtCalc(x), p = c.pending > 0 ? payoff(x, c.pending) : null, isOwe = x.kind === 'owe';
+    const info = [x.monthly ? `Cuota ${eur(x.monthly, 0)}/mes` : null, x.rate ? `${nf(x.rate, 2)}% interés anual` : null].filter(Boolean).join(' · ');
+    const when = c.pending <= 0 ? `🎉 ¡${isOwe ? 'Saldada' : 'Cobrada'}!` : p?.never ? '⚠️ La cuota no cubre ni los intereses: la deuda no baja' : p ? `🎯 ${isOwe ? 'Libre' : 'Cobrada'} en ~${p.months} ${p.months === 1 ? 'mes' : 'meses'} (${monthYear(p.date)})${p.interest > 1 ? ` · intereses aprox. ${eur(p.interest, 0)}` : ''}` : 'Pon una cuota o registra pagos para estimar cuándo acabas';
+    return `<section class="card"><div class="goal" style="padding:0"><div class="top" style="margin:0"><span style="font-size:24px">${esc(x.emoji)}</span><span class="n">${esc(x.name)}</span>${delBtn('debtDel', x.id)}</div></div>
+      <div style="font-size:28px;font-weight:800;margin-top:4px">${eur(c.pending)} <small style="font-size:14px;color:var(--muted);font-weight:500">pendiente</small></div>
+      <div class="bar" style="margin-top:8px"><i style="width:${c.pct * 100}%;background:${c.pending <= 0 ? 'var(--good)' : 'linear-gradient(90deg,#3987e5,#9085e9)'}"></i></div>
+      <div class="meta"><span>${isOwe ? 'Pagado' : 'Cobrado'} ${eur(c.paid, 0)} de ${eur(c.total, 0)}</span><span>${Math.round(c.pct * 100)}%</span></div>
+      ${info ? `<p class="note">${info}</p>` : ''}<p class="note" style="color:var(--ink2)">${when}</p>
+      ${c.pending > 0 ? `<div class="addrow"><input class="txt" inputmode="decimal" data-u="debtAmt.${x.id}" value="${esc(U.debtAmt[x.id] || '')}" placeholder="${x.monthly ? nf(x.monthly, 2) + ' €' : 'Importe €'}"><button class="btn primary" style="--c:${isOwe ? '#3987e5' : '#0ca30c'}" data-a="debtPay" data-v="${x.id}">${isOwe ? 'Pagar' : 'Cobrar'}</button><button class="btn" data-a="debtCharge" data-v="${x.id}" aria-label="Aumentar deuda">＋</button></div>` : ''}
+      ${x.moves.length ? `<div style="margin-top:8px">${x.moves.slice(-4).reverse().map(m => `<div class="tx"><span class="e">${m.kind === 'pay' ? '✅' : '➕'}</span><span class="n">${m.kind === 'pay' ? (isOwe ? 'Pago' : 'Cobro') : 'Aumento de deuda'}<small>${fmtShort(m.date)}</small></span><b>${eur(m.amount)}</b><button class="x" data-a="debtMoveDel" data-v="${x.id}" data-k="${m.id}" aria-label="Borrar">×</button></div>`).join('')}</div>` : ''}
+    </section>`;
+  };
+  return `<section class="card"><div style="color:var(--ink2);font-size:14px">💳 Deuda pendiente total</div>
+    <div style="font-size:38px;font-weight:800;letter-spacing:-.02em">${eur(to.pending)}</div>
+    <div class="bar" style="margin-top:8px"><i style="width:${to.total ? to.paid / to.total * 100 : 0}%;background:linear-gradient(90deg,#3987e5,#0ca30c)"></i></div>
+    <div class="meta"><span>Pagado ${eur(to.paid, 0)} de ${eur(to.total, 0)}</span><span>${to.total ? Math.round(to.paid / to.total * 100) : 0}%</span></div>
+    <p class="note">${free === 'done' ? '🎉 ¡No debes nada! Libre de deudas.' : free ? `🎯 Libre de deudas en <b style="color:#fff">${monthYear(free)}</b> al ritmo actual` : owe.length ? '🎯 Pon una cuota mensual a cada deuda para calcular cuándo quedarás libre.' : 'Añade tus deudas abajo para seguirlas.'}</p>
+    ${owed.length ? `<p class="note">🤝 Te deben: <b style="color:#fff">${eur(tw.pending)}</b></p>` : ''}</section>
+  ${owe.length ? `<section class="card"><h2>📉 Evolución de lo que debes</h2><div id="c-debt"></div></section><h3 style="margin:18px 0 0;color:var(--ink2)">Lo que debo</h3>${owe.map(card).join('')}` : ''}
+  ${owed.length ? `<h3 style="margin:18px 0 0;color:var(--ink2)">Lo que me deben</h3>${owed.map(card).join('')}` : ''}
+  <section class="card"><h2>➕ Nueva deuda</h2>
+    <div class="grid2">
+      <label>Emoji<input class="txt" id="d-e" placeholder="🚗"></label>
+      <label>Nombre<input class="txt" id="d-n" placeholder="Préstamo coche"></label>
+      <label>Tipo<select class="txt" id="d-k"><option value="owe">Debo yo</option><option value="owed">Me deben</option></select></label>
+      <label>Pendiente hoy (€)<input class="txt" id="d-a" inputmode="decimal" placeholder="5000"></label>
+      <label>Interés anual % (opcional)<input class="txt" id="d-r" inputmode="decimal" placeholder="7"></label>
+      <label>Cuota mensual € (opcional)<input class="txt" id="d-m" inputmode="decimal" placeholder="150"></label>
+    </div><button class="btn full" data-a="debtAdd">+ Añadir</button></section>
+  <button class="toggle ${S.config.debtAsExpense ? 'on' : ''}" data-a="debtExp"><span>Los pagos cuentan como gasto del mes (categoría 💳 Deudas)</span><i></i></button>`;
+}
+function mountDebts() {
+  const owe = S.debts.filter(x => x.kind === 'owe'); if (!owe.length || !$('#c-debt')) return;
+  const start = owe.reduce((a, x) => x.start < a ? x.start : a, today());
+  let from = weekStart(start); const lim = addDays(weekStart(today()), -7 * 52); if (from < lim) from = lim;
+  const keys = []; for (let k = from; k <= today(); k = addDays(k, 7)) keys.push(k);
+  if (keys[keys.length - 1] !== today()) keys.push(today());
+  const at = k => sumBy(owe.filter(x => x.start <= k), x => Math.max(0, x.initial + sumBy(x.moves.filter(m => m.date <= k), m => m.kind === 'add' ? m.amount : -m.amount)));
+  mountLine($('#c-debt'), { keys, series: [{ name: 'Pendiente', color: '#e66767', vals: keys.map(at) }], fmt: v => eur(v, 0), tickFmt: v => Math.abs(v) >= 1000 ? nf(v / 1000, 1) + 'k' : nf(v, 0) });
+}
+
+/* ---------- trading ---------- */
+const EMOS = [['calm', '😌', 'Tranquilo'], ['conf', '💪', 'Confiado'], ['fear', '😰', 'Miedo'], ['greed', '🤑', 'Codicia'], ['revenge', '😤', 'Revancha'], ['fomo', '😱', 'FOMO'], ['bored', '🥱', 'Aburrido']];
+const CUR_SYM = { USD: '$', EUR: '€', USDT: 'USDT' };
+function tm(v, signed, dec = 2) {
+  const c = S.config.tradeCur, a = Math.abs(v), s = v < 0 ? '−' : signed && v > 0 ? '+' : '';
+  return s + (c === 'USDT' ? nf(a, dec) + ' USDT' : a.toLocaleString('es-ES', { style: 'currency', currency: c, minimumFractionDigits: dec, maximumFractionDigits: dec }));
+}
+const tmShort = v => (v > 0 ? '+' : v < 0 ? '−' : '') + (Math.abs(v) >= 1000 ? nf(Math.abs(v) / 1000, 1) + 'k' : nf(Math.abs(v), 0));
+const pnlCls = v => v > 0 ? 'in' : v < 0 ? 'neg' : '';
+const accOf = id => S.config.accounts.find(a => a.id === id) || { name: 'Cuenta borrada', emoji: '❔', kind: 'manual', capital: 0 };
+const newTr = (keep = {}) => ({ mode: 'manual', date: today(), acc: null, sym: '', side: 'long', win: true, amt: '', r: '', setup: null, plan: null, emo: null, note: '', bal: '', ...keep });
+const sumPnl = a => sumBy(a, t => t.pnl);
+function trStats(T) {
+  const w = T.filter(t => t.pnl > 0), l = T.filter(t => t.pnl < 0), gw = sumPnl(w), gl = -sumPnl(l);
+  let streak = 0, type = 0;
+  for (let i = T.length - 1; i >= 0; i--) { const s = Math.sign(T[i].pnl); if (!s) continue; if (!type) type = s; if (s !== type) break; streak++; }
+  return { n: T.length, wr: T.length ? w.length / T.length : null, pf: gl ? gw / gl : gw ? Infinity : null, exp: T.length ? (gw - gl) / T.length : null, aw: w.length ? gw / w.length : null, al: l.length ? gl / l.length : null, best: T.length ? Math.max(...T.map(t => t.pnl)) : null, worst: T.length ? Math.min(...T.map(t => t.pnl)) : null, avgR: avg(T.map(t => t.r ?? null)), streak, type };
+}
+function equitySeries(T, capital) {
+  if (!T.length) return { keys: [], vals: [], dd: 0 };
+  const by = {}; T.forEach(t => by[t.k] = (by[t.k] || 0) + t.pnl);
+  const keys = []; for (let k = T[0].k; k <= today(); k = addDays(k, 1)) keys.push(k);
+  let e = capital, peak = capital, dd = 0;
+  const vals = keys.map(k => { e += by[k] || 0; peak = Math.max(peak, e); if (peak > 0) dd = Math.max(dd, (peak - e) / peak); return e; });
+  return { keys, vals, dd };
+}
+function vTrading() {
+  const c = S.config, accs = c.accounts; if (!U.tr) U.tr = newTr(); const R = U.tr;
+  const f = U.trAcc, allT = allOf('trades'), T = allT.filter(t => f === 'all' || t.acc === f);
+  const td = today(), w0 = weekStart(td), m0 = td.slice(0, 7);
+  const capital = sumBy(accs.filter(a => f === 'all' || a.id === f), a => a.capital);
+  const pT = sumPnl(T.filter(t => t.k === td)), pW = sumPnl(T.filter(t => t.k >= w0)), pM = sumPnl(T.filter(t => t.k.startsWith(m0))), pA = sumPnl(T);
+  const eq = equitySeries(T, capital);
+  const man = T.filter(t => t.kind === 'manual'), st = trStats(man);
+  const manToday = sumPnl(allT.filter(t => t.k === td && t.kind === 'manual'));
+  const tile = (l, v) => `<div class="tile"><div class="k">${l}</div><div class="v ${pnlCls(v)}" style="font-size:21px">${tm(v, true, 0)}</div></div>`;
+  const accSettings = `<section class="card"><h2>⚙️ Ajustes de trading</h2>
+    <div class="grid2"><label>Moneda<select class="txt" data-cfgs="tradeCur">${['USD', 'EUR', 'USDT'].map(x => `<option ${c.tradeCur === x ? 'selected' : ''}>${x}</option>`).join('')}</select></label>
+    <label>Pérdida máx. diaria (0 = sin límite)<input class="txt" inputmode="decimal" data-cfg="maxDailyLoss" data-zero value="${c.maxDailyLoss}"></label></div>
+    <h3>🏦 Cuentas y bots</h3>
+    ${accs.map(a => `<div class="list-item"><span>${esc(a.emoji)}</span><span class="n">${esc(a.name)} <small>· ${a.kind === 'bot' ? '🤖 bot' : '🧑‍💻 manual'} · capital ${tm(a.capital, false, 0)}</small></span>${delBtn('accDel', a.id)}</div>`).join('')}
+    <div class="grid2"><label>Emoji<input class="txt" id="a-e" placeholder="🤖"></label><label>Nombre<input class="txt" id="a-n" placeholder="Bot Grid BTC"></label>
+    <label>Tipo<select class="txt" id="a-k"><option value="manual">Trading manual</option><option value="bot">Bot</option></select></label><label>Capital inicial<input class="txt" id="a-c" inputmode="decimal" placeholder="1000"></label></div>
+    <button class="btn full" data-a="accAdd">+ Añadir cuenta / bot</button>
+    ${listEditor('setups', '🧩 Setups / estrategias', 'Nuevo setup')}</section>`;
+  if (!accs.length) return `<h1>Trading</h1><section class="card"><h2>📊 Empieza aquí</h2><p class="note" style="margin-top:0">Crea tus cuentas abajo: una para tu trading manual y una por cada bot. Después registra cada operación manual, o el resultado diario/semanal de cada bot. La app calcula curva de capital, win rate, profit factor, drawdown, calendario de P&amp;L y si ganas más cuando sigues tu plan.</p></section>${accSettings}`;
+  const modeAccs = accs.filter(a => a.kind === (R.mode === 'bot' ? 'bot' : 'manual'));
+  if (!modeAccs.some(a => a.id === R.acc)) R.acc = modeAccs[0]?.id || null;
+  const syms = [...new Set(allT.map(t => t.sym).filter(Boolean))];
+  const form = `<section class="card" style="--c:#3987e5"><h2>➕ Registrar</h2>
+    <div class="seg" style="margin-top:0"><button class="${R.mode === 'manual' ? 'on' : ''}" data-a="trSet" data-f="mode" data-v="manual">🧑‍💻 Operación</button><button class="${R.mode === 'bot' ? 'on' : ''}" data-a="trSet" data-f="mode" data-v="bot">🤖 Resultado bot</button></div>
+    ${modeAccs.length ? `<div class="chips">${modeAccs.map(a => `<button class="chip ${R.acc === a.id ? 'on' : ''}" data-a="trSet" data-f="acc" data-v="${a.id}">${esc(a.emoji)} ${esc(a.name)}</button>`).join('')}</div>` : `<p class="note">Crea primero una cuenta ${R.mode === 'bot' ? 'de tipo bot' : 'manual'} en los ajustes de abajo.</p>`}
+    <div class="grid2"><label>📅 Fecha<input type="date" class="txt" data-u="tr.date" value="${R.date}" max="${td}"></label>
+    ${R.mode === 'manual' ? `<label>Símbolo<input class="txt" data-u="tr.sym" list="symlist" value="${esc(R.sym)}" placeholder="BTCUSDT" autocapitalize="characters"></label>` : `<label>Balance actual (opcional)<input class="txt" inputmode="decimal" data-u="tr.bal" value="${esc(R.bal)}" placeholder="2.150"></label>`}</div>
+    <datalist id="symlist">${syms.map(s => `<option value="${esc(s)}">`).join('')}</datalist>
+    ${R.mode === 'manual' ? `<div class="seg"><button class="${R.side === 'long' ? 'on' : ''}" data-a="trSet" data-f="side" data-v="long">▲ Long</button><button class="${R.side === 'short' ? 'on' : ''}" data-a="trSet" data-f="side" data-v="short">▼ Short</button></div>` : ''}
+    <div class="seg" style="--c:${R.win ? '#0ca30c' : '#d03b3b'}"><button class="${R.win ? 'on' : ''}" data-a="trSet" data-f="win" data-v="1">✅ Ganancia</button><button class="${!R.win ? 'on' : ''}" data-a="trSet" data-f="win" data-v="0">❌ Pérdida</button></div>
+    <div class="amount"><input class="txt" inputmode="decimal" data-u="tr.amt" value="${esc(R.amt)}" placeholder="0,00"><span>${CUR_SYM[c.tradeCur]}</span></div>
+    ${R.mode === 'manual' ? `
+    <div class="grid2"><label>R múltiple (opcional)<input class="txt" inputmode="decimal" data-u="tr.r" value="${esc(R.r)}" placeholder="2"></label>
+    <label>¿Seguiste tu plan?<div class="seg" style="margin-top:0"><button class="${R.plan === true ? 'on' : ''}" data-a="trSet" data-f="plan" data-v="1">Sí</button><button class="${R.plan === false ? 'on' : ''}" data-a="trSet" data-f="plan" data-v="0">No</button></div></label></div>
+    <h3>Setup</h3><div class="chips" style="margin-top:0">${c.setups.map(s => `<button class="chip ${R.setup === s.id ? 'on' : ''}" data-a="trSet" data-f="setup" data-v="${s.id}">${esc(s.emoji)} ${esc(s.name)}</button>`).join('')}</div>
+    <h3>Emoción</h3><div class="chips" style="margin-top:0">${EMOS.map(([id, e, n]) => `<button class="chip ${R.emo === id ? 'on' : ''}" data-a="trSet" data-f="emo" data-v="${id}">${e} ${n}</button>`).join('')}</div>` : ''}
+    <input class="txt" data-u="tr.note" value="${esc(R.note)}" placeholder="Nota: qué viste, qué aprendiste…" style="margin-top:10px">
+    <div class="btns"><button class="btn" data-a="trClose">Cancelar</button><button class="btn primary" data-a="trSave">Guardar</button></div></section>`;
+  const grp = (key, label) => { const g = {}; man.forEach(t => { const k = t[key]; if (k == null) return; (g[k] = g[k] || []).push(t); }); return Object.entries(g).map(([k, a]) => ({ label: label(k), v: sumPnl(a), sub: `${a.length} ops · WR ${Math.round(a.filter(t => t.pnl > 0).length / a.length * 100)}%` })).sort((a, b) => b.v - a.v); };
+  const withPlan = man.filter(t => t.plan === true), noPlan = man.filter(t => t.plan === false);
+  const bots = accs.filter(a => a.kind === 'bot' && (f === 'all' || a.id === f));
+  const [y, mo] = U.trMonth.split('-').map(Number), off = (new Date(y, mo - 1, 1).getDay() + 6) % 7, dim = new Date(y, mo, 0).getDate();
+  const byDay = {}; T.filter(t => t.k.startsWith(U.trMonth)).forEach(t => byDay[t.k] = (byDay[t.k] || 0) + t.pnl);
+  const maxAbs = Math.max(1e-9, ...Object.values(byDay).map(Math.abs)), dv = Object.values(byDay);
+  let cal = ['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(w => `<span class="wd">${w}</span>`).join('') + '<span></span>'.repeat(off);
+  for (let dd = 1; dd <= dim; dd++) { const k = `${U.trMonth}-${pad(dd)}`, v = byDay[k]; cal += `<div class="pcell ${v != null ? 'has' : ''}" style="${v != null ? `background:${mix(v >= 0 ? '#0ca30c' : '#d03b3b', .3 + .7 * Math.abs(v) / maxAbs)}` : ''}"><span>${dd}</span>${v != null ? `<b>${tmShort(v)}</b>` : ''}</div>`; }
+  return `<h1>Trading</h1>
+  <div class="chips" style="margin-top:0">${[{ id: 'all', name: 'Todas', emoji: '📊' }, ...accs].map(a => `<button class="chip ${f === a.id ? 'on' : ''}" data-a="trAcc" data-v="${a.id}">${esc(a.emoji)} ${esc(a.name)}</button>`).join('')}</div>
+  ${c.maxDailyLoss > 0 && manToday <= -c.maxDailyLoss ? `<div class="banner" style="background:rgba(208,59,59,.14);border-color:rgba(208,59,59,.5);color:#ffb4b4">🛑 Has llegado a tu pérdida máxima diaria (${tm(-c.maxDailyLoss)}). Hoy toca cerrar la plataforma.</div>` : ''}
+  ${U.trOpen ? form : `<button class="btn primary full" data-a="trOpen">➕ Registrar operación o resultado de bot</button>`}
+  <div class="tiles">${tile('Hoy', pT)}${tile('Esta semana', pW)}${tile('Este mes', pM)}${tile('Total', pA)}</div>
+  <section class="card"><h2>📈 Curva de capital</h2>
+    <div class="meta" style="margin:0 0 8px"><span>Capital <b style="color:#fff">${tm(eq.vals.length ? eq.vals[eq.vals.length - 1] : capital, false, 0)}</b></span><span>${capital ? `Retorno <b class="${pnlCls(pA)}">${pA >= 0 ? '+' : '−'}${nf(Math.abs(pA / capital * 100), 1)}%</b> · ` : ''}DD máx <b style="color:#fff">${nf(eq.dd * 100, 1)}%</b></span></div>
+    <div id="c-eq"></div></section>
+  <section class="card"><h2>📊 P&amp;L diario · 30 días</h2><div id="c-pnl"></div></section>
+  <section class="card"><div class="datenav" style="margin:0 0 10px"><button data-a="trMonth" data-v="-1" aria-label="Mes anterior">‹</button><div><b style="font-size:18px">${cap(MESL[mo - 1])} ${y}</b><small class="${pnlCls(sumBy(dv, v => v))}">${tm(sumBy(dv, v => v), true, 0)} · ${dv.filter(v => v > 0).length} días verdes · ${dv.filter(v => v < 0).length} rojos</small></div><button data-a="trMonth" data-v="1" ${U.trMonth >= m0 ? 'disabled' : ''} aria-label="Mes siguiente">›</button></div><div class="pgrid">${cal}</div></section>
+  ${man.length ? `<section class="card"><h2>🧑‍💻 Trading manual</h2>
+    <div class="hero">${ringOne(st.wr, '#0ca30c', Math.round(st.wr * 100) + '%', 'win rate', 116)}
+      <div class="hleg"><div class="hl">Operaciones<b>${st.n}</b></div><div class="hl">Profit factor<b>${st.pf === Infinity ? '∞' : st.pf == null ? '—' : nf(st.pf, 2)}</b></div><div class="hl">Esperanza/op.<b class="${pnlCls(st.exp)}">${tm(st.exp, true)}</b></div><div class="hl">R medio<b>${st.avgR == null ? '—' : nf(st.avgR, 2) + 'R'}</b></div></div></div>
+    <div class="tiles" style="margin-bottom:0">
+      <div class="tile"><div class="k">Ganancia media</div><div class="v in" style="font-size:19px">${st.aw == null ? '—' : tm(st.aw, true)}</div></div>
+      <div class="tile"><div class="k">Pérdida media</div><div class="v neg" style="font-size:19px">${st.al == null ? '—' : tm(-st.al)}</div></div>
+      <div class="tile"><div class="k">Mejor operación</div><div class="v in" style="font-size:19px">${tm(st.best, true)}</div></div>
+      <div class="tile"><div class="k">Peor operación</div><div class="v neg" style="font-size:19px">${tm(st.worst, true)}</div></div></div>
+    ${st.streak ? `<p class="note">Racha actual: <b style="color:#fff">${st.streak} ${st.type > 0 ? 'ganadoras 🔥' : 'perdedoras 🧊'}</b></p>` : ''}</section>` : ''}
+  ${withPlan.length + noPlan.length ? `<section class="card"><h2>🧠 Disciplina</h2>
+    <p style="margin:0 0 10px;color:var(--ink2)">Sigues tu plan en el <b style="color:#fff">${Math.round(withPlan.length / (withPlan.length + noPlan.length) * 100)}%</b> de tus operaciones.</p>
+    ${divBars([{ label: '✅ Con plan', v: withPlan.length ? sumPnl(withPlan) / withPlan.length : 0, sub: `${withPlan.length} ops` }, { label: '❌ Sin plan', v: noPlan.length ? sumPnl(noPlan) / noPlan.length : 0, sub: `${noPlan.length} ops` }], v => tm(v, true))}
+    <p class="note">Resultado medio por operación.</p></section>` : ''}
+  ${grp('emo', k => { const e = EMOS.find(x => x[0] === k); return e ? e[1] + ' ' + e[2] : k; }).length ? `<section class="card"><h2>🎭 Resultado según emoción</h2>${divBars(grp('emo', k => { const e = EMOS.find(x => x[0] === k); return e ? e[1] + ' ' + e[2] : k; }), v => tm(v, true, 0))}</section>` : ''}
+  ${grp('setup', k => { const s = c.setups.find(x => x.id === k); return s ? esc(s.emoji + ' ' + s.name) : '—'; }).length ? `<section class="card"><h2>🧩 Resultado por setup</h2>${divBars(grp('setup', k => { const s = c.setups.find(x => x.id === k); return s ? esc(s.emoji + ' ' + s.name) : '—'; }), v => tm(v, true, 0))}</section>` : ''}
+  ${grp('sym', k => esc(k)).length ? `<section class="card"><h2>💱 Resultado por activo</h2>${divBars(grp('sym', k => esc(k)).slice(0, 8), v => tm(v, true, 0))}</section>` : ''}
+  ${bots.length ? `<section class="card"><h2>🤖 Bots</h2>${bots.map(b => { const E = allT.filter(t => t.acc === b.id), p = sumPnl(E), e = equitySeries(E, b.capital), last = [...E].reverse().find(t => t.bal != null), days = E.length; return `<div class="botrow"><span style="font-size:24px">${esc(b.emoji)}</span><span class="n">${esc(b.name)}<small>${b.capital ? `${p >= 0 ? '+' : '−'}${nf(Math.abs(p / b.capital * 100), 1)}% · ` : ''}DD ${nf(e.dd * 100, 1)}% · ${days ? Math.round(E.filter(t => t.pnl > 0).length / days * 100) : 0}% en verde${last ? ` · balance ${tm(last.bal, false, 0)}` : ''}${E.length ? ` · últ. ${fmtShort(E[E.length - 1].k)}` : ''}</small></span>${sparkSVG(e.vals, p >= 0 ? '#0ca30c' : '#d03b3b')}<b class="${pnlCls(p)}" style="min-width:64px;text-align:right">${tm(p, true, 0)}</b></div>`; }).join('')}</section>` : ''}
+  <section class="card"><h2>🧾 Historial</h2>${T.length ? T.slice(-40).reverse().map(t => { const a = accOf(t.acc), s = c.setups.find(x => x.id === t.setup), e = EMOS.find(x => x[0] === t.emo); return `<div class="tx"><span class="e">${esc(a.emoji)}</span><span class="n">${t.kind === 'manual' ? `${esc(t.sym || '—')} ${t.side === 'short' ? '▼' : '▲'}` : esc(a.name)}<small>${fmtShort(t.k)}${t.kind === 'manual' ? ' · ' + esc(a.name) : ''}${s ? ' · ' + esc(s.name) : ''}${e ? ' · ' + e[1] : ''}${t.plan === false ? ' · ❌ sin plan' : ''}${t.r != null ? ' · ' + nf(t.r, 1) + 'R' : ''}${t.note ? ' · ' + esc(t.note) : ''}</small></span><b class="${pnlCls(t.pnl)}">${tm(t.pnl, true)}</b><button class="x" data-a="trDel" data-v="${t.id}" data-k="${t.k}" aria-label="Borrar">×</button></div>`; }).join('') : '<p class="empty">Sin registros todavía</p>'}</section>
+  ${accSettings}`;
+}
+function mountPnl(el, { keys, vals, fmt }) {
+  if (!el) return;
+  const W = Math.max(260, el.clientWidth), H = 170, pl = 44, pr = 10, pt = 14, pb = 22;
+  if (!vals.some(x => x)) { el.innerHTML = '<div class="empty">Sin operaciones en este periodo</div>'; return; }
+  const mx = Math.max(...vals.map(x => Math.abs(x || 0))), tk = niceTicks(-mx, mx), lo = tk.lo, hi = tk.hi;
+  const n = keys.length, iw = W - pl - pr, ih = H - pt - pb, slot = iw / n, bw = Math.max(2, Math.min(18, slot - 2));
+  const Y = x => pt + ih * (1 - (x - lo) / ((hi - lo) || 1)), X = i => pl + i * slot + slot / 2;
+  let g = '';
+  for (const t of tk.t) g += `<line x1="${pl}" x2="${W - pr}" y1="${Y(t)}" y2="${Y(t)}" stroke="${t === 0 ? 'var(--axis)' : 'var(--line)'}"/><text class="ax" x="${pl - 6}" y="${Y(t) + 3.5}" text-anchor="end">${tmShort(t)}</text>`;
+  vals.forEach((x, i) => {
+    if (!x) return;
+    const y0 = Y(0), h = Math.abs(Y(x) - y0), x0 = X(i) - bw / 2;
+    g += x > 0 ? `<path d="${barPath(x0, Y(x), bw, h, 3)}" fill="#0ca30c"/>` : `<path d="${barPath(x0, y0, bw, h, 3)}" transform="rotate(180 ${X(i)} ${y0 + h / 2})" fill="#d03b3b"/>`;
+  });
+  [...new Set([0, Math.floor((n - 1) / 2), n - 1])].forEach(i => g += `<text class="ax" x="${X(i)}" y="${H - 6}" text-anchor="middle">${fmtShort(keys[i])}</text>`);
+  g += `<rect class="hl" y="${pt}" height="${ih}" width="${slot}" fill="rgba(255,255,255,.06)" rx="4" style="display:none"/>`;
+  el.innerHTML = `<div class="cwrap"><svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}">${g}<rect x="${pl}" y="0" width="${iw}" height="${H}" fill="transparent"/></svg><div class="tip"></div></div>`;
+  const hl = el.querySelector('.hl');
+  hover(el, W, n, X, i => `<div>${cap(fmtLong(keys[i]))}</div><div><b class="${pnlCls(vals[i] || 0)}">${vals[i] == null ? 'Sin operaciones' : fmt(vals[i])}</b></div>`, i => { if (i == null) { hl.style.display = 'none'; return; } hl.style.display = ''; hl.setAttribute('x', pl + i * slot); });
+}
+function mountTrading() {
+  const c = S.config, f = U.trAcc, T = allOf('trades').filter(t => f === 'all' || t.acc === f);
+  const capital = sumBy(c.accounts.filter(a => f === 'all' || a.id === f), a => a.capital), eq = equitySeries(T, capital);
+  if ($('#c-eq')) { if (eq.keys.length) mountLine($('#c-eq'), { keys: eq.keys, series: [{ name: 'Capital', color: '#3987e5', vals: eq.vals }], fmt: v => tm(v, false, 0), tickFmt: v => Math.abs(v) >= 1000 ? nf(v / 1000, 1) + 'k' : nf(v, 0) }); else $('#c-eq').innerHTML = '<div class="empty">Registra operaciones para ver tu curva</div>'; }
+  const keys = range(today(), 30), by = {}; T.forEach(t => by[t.k] = (by[t.k] || 0) + t.pnl);
+  mountPnl($('#c-pnl'), { keys, vals: keys.map(k => by[k] ?? null), fmt: v => tm(v, true) });
+}
+
+/* ---------- datos de ejemplo ---------- */
+function genDemo() {
+  const c = S.config, days = {}, T = today(); let w = 76.4;
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+  const shoe = c.shoes.find(s => s.demo), man = c.accounts.find(a => a.demo && a.kind === 'manual'), bots = c.accounts.filter(a => a.demo && a.kind === 'bot');
+  const syms = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'EURUSD', 'NAS100', 'XAUUSD'];
+  const cats = c.expenseCats.filter(x => x.name !== 'Deudas'), notes =['Buen día en el trabajo', 'Cena con amigos', 'Me costó arrancar', 'Paseo largo por la tarde', 'Día tranquilo', 'Mucho estrés con un proyecto', 'He dormido fatal', 'Tarde de peli'];
+  for (let i = 150; i >= 0; i--) {
+    const k = addDays(T, -i), dt = parseKey(k), dow = dt.getDay(), we = dow === 0 || dow === 6;
+    if (i > 0 && Math.random() < .07) continue;
+    const d = {};
+    d.sleep = Math.round(clamp(6.9 + (we ? .8 : 0) + gauss() * .9, 4, 10) * 2) / 2;
+    d.exercise = Math.random() < (we ? .6 : .5) ? pick([20, 30, 30, 45, 60]) : 0;
+    d.stress = Math.round(clamp(3.2 - (we ? 1 : 0) - (d.sleep - 7) * .35 + gauss() * .8, 1, 5));
+    d.mood = Math.round(clamp(3 + (d.sleep - 7) * .55 + (d.exercise ? .5 : 0) + (we ? .4 : 0) - (d.stress - 3) * .35 + gauss() * .55, 1, 5));
+    d.energy = Math.round(clamp(2.9 + (d.sleep - 7) * .7 + (d.exercise ? .4 : 0) + gauss() * .6, 1, 5));
+    d.water = Math.round(clamp(5.5 + gauss() * 1.8 + (d.exercise ? 1 : 0), 1, 12));
+    d.steps = Math.round(clamp(6800 + (d.exercise ? 2800 : 0) + (we ? 1500 : 0) + gauss() * 2300, 1500, 22000) / 10) * 10;
+    w += gauss() * .12 - .015;
+    if (Math.random() < .35) d.weight = Math.round(w * 10) / 10;
+    d.habits = {};
+    c.habits.forEach((h, j) => { if (Math.random() < .35 + j * .05 + (d.mood - 3) * .1 + (i < 40 ? .15 : 0)) d.habits[h.id] = true; });
+    d.tx = [];
+    const ntx = Math.random() < .2 ? 0 : 1 + Math.floor(Math.random() * 2.4);
+    for (let t = 0; t < ntx; t++) {
+      const ct = cats[Math.min(cats.length - 1, Math.floor(Math.random() ** 1.6 * cats.length))];
+      const base = { 'Súper': 32, 'Restaurantes': 24, 'Transporte': 9, 'Casa': 45, 'Ocio': 20, 'Compras': 38, 'Salud': 15 }[ct.name] || 12;
+      d.tx.push({ id: uid(), type: 'out', cat: ct.id, amount: Math.round(base * (.4 + Math.random() * 1.2) * 100) / 100 });
+    }
+    if (dt.getDate() === 1) { d.tx.push({ id: uid(), type: 'in', cat: c.incomeCats[0].id, amount: 1850, note: 'Nómina' }); d.tx.push({ id: uid(), type: 'out', cat: (cats.find(x => x.name === 'Casa') || cats[0]).id, amount: 650, note: 'Alquiler' }); }
+    if (Math.random() < .06) d.tx.push({ id: uid(), type: 'in', cat: c.incomeCats[1]?.id || c.incomeCats[0].id, amount: Math.round(40 + Math.random() * 160), note: 'Venta Wallapop' });
+    if (!d.tx.length) d.noSpend = true;
+    if (Math.random() < .3) d.note = pick(notes);
+    // deporte: empezó a correr hace ~12 semanas, progresando
+    if ([2, 4, 0].includes(dow) && i < 84 && Math.random() < .85) {
+      const prog = (84 - i) / 84, long = dow === 0, dist = Math.round((long ? 5 + prog * 6 : 3 + prog * 3.5) * (.9 + Math.random() * .2) * 100) / 100;
+      const pace = 400 - prog * 50 + (long ? 15 : 0) + gauss() * 8;
+      d.workouts = [{ id: uid(), sport: 'run', type: long ? 'Tirada larga' : dow === 4 && Math.random() < .5 ? 'Series' : 'Rodaje', dist, dur: Math.round(dist * pace), feel: clamp(Math.round(3.4 + gauss()), 1, 5), shoe: shoe?.id }];
+      d.exercise = Math.round(dist * pace / 60);
+    } else if ([1, 3].includes(dow) && Math.random() < .7) {
+      d.workouts = [{ id: uid(), sport: 'gym', dur: 3600 + Math.round(gauss() * 500), feel: 4 }];
+      d.exercise = Math.round(d.workouts[0].dur / 60);
+    }
+    // trading
+    d.trades = [];
+    if (!we && man && Math.random() < .75) {
+      for (let t = 0, nt = 1 + Math.floor(Math.random() * 3); t < nt; t++) {
+        const plan = Math.random() < .7 + (d.sleep - 7) * .08, win = Math.random() < (plan ? .58 : .36);
+        const r = win ? +(0.8 + Math.random() * 2).toFixed(1) : -(plan ? 1 : +(1 + Math.random() * 1.5).toFixed(1));
+        d.trades.push({ id: uid(), acc: man.id, kind: 'manual', pnl: Math.round(r * 50 * 100) / 100, r, sym: pick(syms), side: Math.random() < .6 ? 'long' : 'short', setup: pick(c.setups).id, plan, emo: plan ? pick(['calm', 'calm', 'conf']) : pick(['revenge', 'fomo', 'greed', 'fear']) });
+      }
+    }
+    for (const b of bots) d.trades.push({ id: uid(), acc: b.id, kind: 'bot', pnl: Math.round(b.capital * (.0011 + gauss() * .006) * 100) / 100 });
+    if (!d.trades.length) delete d.trades;
+    if (i === 0) { delete d.habits; delete d.tx; delete d.noSpend; delete d.note; delete d.water; delete d.steps; delete d.weight; d.water = 3; }
+    days[k] = d;
+  }
+  return days;
+}
+
+/* ---------- acciones ---------- */
+const ACTIONS = {
+  day: t => { const k = addDays(U.cur, +t.dataset.v); if (k <= today()) U.cur = k; },
+  step: t => {
+    const f = t.dataset.f, d = +t.dataset.d, cur = getVal(S.days[U.cur], f);
+    let v = cur == null ? (d > 0 ? +t.dataset.def : null) : +(cur + d).toFixed(2);
+    if (v != null && v < 0) v = null;
+    if (v != null) v = Math.min(v, +t.dataset.max);
+    setVal(U.cur, f, v); return true;
+  },
+  set: t => { const f = t.dataset.f, v = +t.dataset.v; setVal(U.cur, f, getVal(S.days[U.cur], f) === v ? null : v); return true; },
+  toggle: t => { const f = t.dataset.f; setVal(U.cur, f, getVal(S.days[U.cur], f) ? null : true); return true; },
+  water: t => { const v = +t.dataset.v, cur = S.days[U.cur]?.water || 0; setVal(U.cur, 'water', v === cur ? v - 1 || null : v); return true; },
+  habit: t => { const f = 'habits.' + t.dataset.v; setVal(U.cur, f, getVal(S.days[U.cur], f) ? null : true); return true; },
+  txType: t => { U.txType = t.dataset.v; U.txCat = null; },
+  txCat: t => { U.txCat = t.dataset.v; },
+  txAdd: () => {
+    const amt = parseFloat(String(U.txAmt).replace(/\./g, '').replace(',', '.')) || parseFloat(String(U.txAmt).replace(',', '.'));
+    if (!(amt > 0)) { toast('Escribe un importe'); $('#txAmt')?.focus(); return 'stay'; }
+    const d = dayObj(U.cur); d.tx = d.tx || [];
+    d.tx.push({ id: uid(), type: U.txType, cat: U.txCat, amount: Math.round(amt * 100) / 100, note: U.txNote.trim() || undefined });
+    if (U.txType === 'out') delete d.noSpend;
+    U.txAmt = ''; U.txNote = '';
+    toast(`${U.txType === 'in' ? '💰 Ingreso' : '💸 Gasto'} de ${eur(amt)} añadido`);
+    return true;
+  },
+  txDel: t => { const k = t.dataset.k || U.cur, d = S.days[k]; if (!d?.tx) return; d.tx = d.tx.filter(x => x.id !== t.dataset.v); if (!hasData(d)) delete S.days[k]; return true; },
+  start: () => { S.welcomed = true; return true; },
+  demo: () => {
+    const c = S.config, ago = n => addDays(today(), -n);
+    c.shoes.push({ id: uid(), name: 'Pegasus 41', emoji: '👟', demo: true });
+    c.accounts.push({ id: uid(), name: 'Manual', emoji: '🧑‍💻', kind: 'manual', capital: 5000, demo: true }, { id: uid(), name: 'Grid BTC', emoji: '🤖', kind: 'bot', capital: 2000, demo: true }, { id: uid(), name: 'DCA ETH', emoji: '🦾', kind: 'bot', capital: 1500, demo: true });
+    S.debts = [
+      { id: uid(), demo: true, name: 'Préstamo coche', emoji: '🚗', kind: 'owe', initial: 9000, rate: 6.5, monthly: 220, start: ago(150), moves: [] },
+      { id: uid(), demo: true, name: 'Tarjeta de crédito', emoji: '💳', kind: 'owe', initial: 1400, rate: 21, monthly: 120, start: ago(150), moves: [{ id: uid(), date: ago(70), amount: 250, kind: 'add' }] },
+      { id: uid(), demo: true, name: 'Préstamo a un amigo', emoji: '🤝', kind: 'owed', initial: 300, rate: 0, monthly: 0, start: ago(60), moves: [{ id: uid(), date: ago(30), amount: 100, kind: 'pay' }] },
+    ];
+    for (const x of S.debts.filter(x => x.kind === 'owe')) for (let k = x.start; k <= today(); k = addDays(k, 1)) if (parseKey(k).getDate() === 5) x.moves.push({ id: uid(), date: k, amount: x.monthly, kind: 'pay' });
+    S.debts.forEach(x => x.moves.sort((a, b) => a.date < b.date ? -1 : 1));
+    S.days = genDemo(); S.demo = true; S.welcomed = true;
+    S.config.goalsList = [{ id: uid(), emoji: '📚', name: 'Leer 20 libros este año', target: 20, current: 13, unit: 'libros', step: 1, demo: true }, { id: uid(), emoji: '🐷', name: 'Fondo de emergencia', target: 3000, current: 1850, unit: '€', step: 50, demo: true }, { id: uid(), emoji: '🏃', name: 'Correr 10 km seguidos', target: 10, current: 7, unit: 'km', step: 1, demo: true }];
+    checkUnlocks(true); U.cur = today(); toast('🧪 Datos de ejemplo cargados'); return true;
+  },
+  clearDemo: () => { if (!confirm('¿Borrar los datos de ejemplo y empezar de cero?')) return 'stay'; S.days = {}; S.demo = false; const c = S.config; c.goalsList = c.goalsList.filter(g => !g.demo); c.shoes = c.shoes.filter(x => !x.demo); c.accounts = c.accounts.filter(x => !x.demo); S.debts = S.debts.filter(x => !x.demo); U.trAcc = 'all'; checkUnlocks(true); return true; },
+  hideInstall: () => { S.hideInstall = true; return true; },
+  range: t => { U.range = +t.dataset.v; },
+  year: t => { U.calYear += +t.dataset.v; U.sel = null; },
+  calSel: t => { U.sel = U.sel === t.dataset.v ? null : t.dataset.v; },
+  openDay: t => { U.cur = t.dataset.v; U.tab = 'hoy'; scrollTo(0, 0); },
+  month: t => { const [y, m] = U.month.split('-').map(Number), d = new Date(y, m - 1 + +t.dataset.v, 1); U.month = `${d.getFullYear()}-${pad(d.getMonth() + 1)}`; },
+  goalStep: t => { const g = S.config.goalsList.find(x => x.id === t.dataset.v); if (!g) return; g.current = Math.max(0, +(g.current + (+t.dataset.d) * (g.step || 1)).toFixed(2)); if (g.current >= g.target && +t.dataset.d > 0 && g.current - (g.step || 1) < g.target) toast(`🎉 ¡Meta cumplida! ${g.emoji} ${g.name}`); return true; },
+  goalDel: t => { if (!confirm('¿Borrar esta meta?')) return 'stay'; S.config.goalsList = S.config.goalsList.filter(x => x.id !== t.dataset.v); return true; },
+  goalAdd: () => {
+    const n = $('#g-n').value.trim(), tg = parseFloat($('#g-t').value.replace(',', '.'));
+    if (!n || !(tg > 0)) { toast('Pon un nombre y un objetivo'); return 'stay'; }
+    S.config.goalsList.push({ id: uid(), emoji: $('#g-e').value.trim() || '🚩', name: n, target: tg, current: 0, unit: $('#g-u').value.trim(), step: tg >= 500 ? Math.round(tg / 50) : tg >= 50 ? 5 : 1 });
+    return true;
+  },
+  listDel: t => { const key = t.dataset.k; if (!confirm('¿Borrar? Los días ya registrados no se modifican.')) return 'stay'; S.config[key] = S.config[key].filter(x => x.id !== t.dataset.v); return true; },
+  listAdd: t => { const key = t.dataset.k, n = $(`#add-${key}-n`).value.trim(); if (!n) return 'stay'; S.config[key].push({ id: uid(), name: n, emoji: $(`#add-${key}-e`).value.trim() || '•' }); return true; },
+  customAdd: () => { const n = $('#cm-n').value.trim(); if (!n) { toast('Ponle un nombre'); return 'stay'; } S.config.custom.push({ id: uid(), name: n, emoji: $('#cm-e').value.trim() || '🧩', type: $('#cm-t').value, area: $('#cm-a').value, unit: $('#cm-u').value.trim() }); toast('Métrica añadida: aparece en Hoy'); return true; },
+  customDel: t => { if (!confirm('¿Borrar esta métrica? Se ocultará de Hoy.')) return 'stay'; S.config.custom = S.config.custom.filter(x => x.id !== t.dataset.v); return true; },
+  export: async () => {
+    const name = `vida-copia-${today()}.json`, blob = new Blob([JSON.stringify(S)], { type: 'application/json' });
+    const file = new File([blob], name, { type: 'application/json' });
+    try {
+      if (navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file], title: name });
+      else { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500); }
+      S.lastBackup = Date.now(); save(); render(); toast('💾 Copia exportada');
+    } catch (e) { if (e.name !== 'AbortError') toast('No se pudo exportar'); }
+    return 'stay';
+  },
+  import: () => { $('#importFile').click(); return 'stay'; },
+  statsView: t => { U.statsView = t.dataset.v; },
+  moneyView: t => { U.moneyView = t.dataset.v; },
+  habitEdit: () => { U.habitEdit = !U.habitEdit; },
+  // deporte
+  goSport: () => { U.tab = 'sport'; U.wk = newWk({ date: U.cur }); U.wkOpen = true; scrollTo(0, 0); },
+  sportFilter: t => { U.sport = t.dataset.v; },
+  wkOpen: () => { U.wk = newWk({ date: today(), sport: U.sport !== 'all' ? U.sport : 'run' }); U.wkOpen = true; },
+  wkClose: () => { U.wkOpen = false; },
+  wkSet: t => { const f = t.dataset.f, v = t.dataset.v; if (f === 'feel') U.wk.feel = U.wk.feel === +v ? null : +v; else U.wk[f] = v; },
+  wkSave: () => {
+    const W = U.wk, dist = num(W.dist) || 0, dur = (+W.h || 0) * 3600 + (+W.m || 0) * 60 + (+W.s || 0);
+    if (!dist && !dur) { toast('Pon la distancia o la duración'); return 'stay'; }
+    if (!W.date || W.date > today()) { toast('Fecha no válida'); return 'stay'; }
+    const d = dayObj(W.date); d.workouts = d.workouts || [];
+    const w = { id: uid(), sport: W.sport, dist: dist || undefined, dur: dur || undefined, feel: W.feel || undefined, note: W.note.trim() || undefined };
+    if (W.sport === 'run') { w.type = W.type; if (W.shoe) w.shoe = W.shoe; }
+    d.workouts.push(w);
+    if (dur) d.exercise = (d.exercise || 0) + Math.round(dur / 60);
+    toast(`💪 ${sportOf(w.sport).name} guardado${paceOf(w) ? ' · ' + fmtPace(paceOf(w)) + ' /km' : ''}`);
+    U.wkOpen = false; U.wk = newWk({ sport: W.sport }); return true;
+  },
+  wkDel: t => {
+    const k = t.dataset.k, d = S.days[k]; if (!d?.workouts) return 'stay';
+    if (!confirm('¿Borrar este entreno?')) return 'stay';
+    const w = d.workouts.find(x => x.id === t.dataset.v);
+    if (w?.dur && d.exercise != null) { d.exercise = Math.max(0, d.exercise - Math.round(w.dur / 60)); if (!d.exercise) delete d.exercise; }
+    d.workouts = d.workouts.filter(x => x.id !== t.dataset.v); if (!d.workouts.length) delete d.workouts;
+    if (!hasData(d)) delete S.days[k]; return true;
+  },
+  // deudas
+  debtAdd: () => {
+    const n = $('#d-n').value.trim(), a = num($('#d-a').value), kind = $('#d-k').value;
+    if (!n || !(a > 0)) { toast('Pon nombre e importe'); return 'stay'; }
+    S.debts.push({ id: uid(), name: n, emoji: $('#d-e').value.trim() || (kind === 'owe' ? '💳' : '🤝'), kind, initial: a, rate: num($('#d-r').value) || 0, monthly: num($('#d-m').value) || 0, start: today(), moves: [] });
+    return true;
+  },
+  debtPay: t => {
+    const x = S.debts.find(d => d.id === t.dataset.v); if (!x) return 'stay';
+    let a = num(U.debtAmt[x.id]) || x.monthly;
+    if (!(a > 0)) { toast('Escribe un importe'); return 'stay'; }
+    a = Math.min(a, debtCalc(x).pending);
+    const m = { id: uid(), date: today(), amount: a, kind: 'pay' };
+    if (S.config.debtAsExpense) {
+      const out = x.kind === 'owe', d = dayObj(today()); d.tx = d.tx || [];
+      const tx = { id: uid(), type: out ? 'out' : 'in', cat: out ? ensureCat('expenseCats', 'Deudas', '💳') : ensureCat('incomeCats', 'Cobro deuda', '🤝'), amount: a, note: x.name };
+      d.tx.push(tx); m.txId = tx.id; if (out) delete d.noSpend;
+    }
+    x.moves.push(m); U.debtAmt[x.id] = '';
+    toast(debtCalc(x).pending <= 0 ? `🎉 ¡${x.kind === 'owe' ? 'Deuda saldada' : 'Deuda cobrada'}! ${x.name}` : `✅ ${eur(a)} ${x.kind === 'owe' ? 'pagados' : 'cobrados'}`);
+    return true;
+  },
+  debtCharge: t => {
+    const x = S.debts.find(d => d.id === t.dataset.v), a = num(U.debtAmt[x?.id]);
+    if (!x || !(a > 0)) { toast('Escribe el importe que aumenta la deuda y toca ＋'); return 'stay'; }
+    x.moves.push({ id: uid(), date: today(), amount: a, kind: 'add' }); U.debtAmt[x.id] = ''; toast(`➕ Deuda aumentada ${eur(a)}`); return true;
+  },
+  debtMoveDel: t => {
+    const x = S.debts.find(d => d.id === t.dataset.v), m = x?.moves.find(y => y.id === t.dataset.k); if (!m) return 'stay';
+    if (!confirm('¿Borrar este movimiento?')) return 'stay';
+    if (m.txId && S.days[m.date]?.tx) { const d = S.days[m.date]; d.tx = d.tx.filter(y => y.id !== m.txId); if (!hasData(d)) delete S.days[m.date]; }
+    x.moves = x.moves.filter(y => y !== m); return true;
+  },
+  debtDel: t => { if (!confirm('¿Borrar esta deuda y su historial?')) return 'stay'; S.debts = S.debts.filter(d => d.id !== t.dataset.v); return true; },
+  debtExp: () => { S.config.debtAsExpense = !S.config.debtAsExpense; return true; },
+  // trading
+  trOpen: () => { const acc = U.trAcc !== 'all' ? U.trAcc : U.tr?.acc; U.tr = newTr({ mode: acc ? accOf(acc).kind : 'manual', acc }); U.trOpen = true; },
+  trClose: () => { U.trOpen = false; },
+  trSet: t => { const R = U.tr, f = t.dataset.f, v = t.dataset.v; if (f === 'win') R.win = v === '1'; else if (f === 'plan') { const b = v === '1'; R.plan = R.plan === b ? null : b; } else if (f === 'setup' || f === 'emo') R[f] = R[f] === v ? null : v; else R[f] = v; },
+  trSave: () => {
+    const R = U.tr, a = num(R.amt);
+    if (!R.acc) { toast('Elige una cuenta'); return 'stay'; }
+    if (!(a >= 0)) { toast('Escribe el resultado'); return 'stay'; }
+    if (!R.date || R.date > today()) { toast('Fecha no válida'); return 'stay'; }
+    const pnl = R.win ? a : -a, d = dayObj(R.date); d.trades = d.trades || [];
+    const t = { id: uid(), acc: R.acc, kind: R.mode, pnl, note: R.note.trim() || undefined };
+    if (R.mode === 'manual') {
+      Object.assign(t, { sym: R.sym.trim().toUpperCase() || undefined, side: R.side, setup: R.setup || undefined, emo: R.emo || undefined });
+      if (R.plan != null) t.plan = R.plan;
+      const r = num(R.r); if (!isNaN(r)) t.r = R.win ? Math.abs(r) : -Math.abs(r);
+    } else { const b = num(R.bal); if (!isNaN(b)) t.bal = b; }
+    d.trades.push(t);
+    const lim = S.config.maxDailyLoss, dayMan = sumPnl((S.days[today()]?.trades || []).filter(x => x.kind === 'manual'));
+    toast(lim && R.mode === 'manual' && R.date === today() && dayMan <= -lim ? '🛑 Límite de pérdida diaria alcanzado. Para por hoy.' : `${pnl >= 0 ? '📈' : '📉'} ${tm(pnl, true)} registrado`);
+    U.tr = newTr({ mode: R.mode, acc: R.acc, date: R.date }); U.trOpen = false; return true;
+  },
+  trDel: t => { const k = t.dataset.k, d = S.days[k]; if (!d?.trades) return 'stay'; if (!confirm('¿Borrar este registro?')) return 'stay'; d.trades = d.trades.filter(x => x.id !== t.dataset.v); if (!d.trades.length) delete d.trades; if (!hasData(d)) delete S.days[k]; return true; },
+  trAcc: t => { U.trAcc = t.dataset.v; },
+  trMonth: t => { const [y, m] = U.trMonth.split('-').map(Number), d = new Date(y, m - 1 + +t.dataset.v, 1); U.trMonth = `${d.getFullYear()}-${pad(d.getMonth() + 1)}`; },
+  accAdd: () => {
+    const n = $('#a-n').value.trim(), kind = $('#a-k').value;
+    if (!n) { toast('Ponle nombre a la cuenta'); return 'stay'; }
+    S.config.accounts.push({ id: uid(), name: n, emoji: $('#a-e').value.trim() || (kind === 'bot' ? '🤖' : '🧑‍💻'), kind, capital: num($('#a-c').value) || 0 });
+    toast('Cuenta creada'); return true;
+  },
+  accDel: t => {
+    const id = t.dataset.v, n = allOf('trades').filter(x => x.acc === id).length;
+    if (!confirm(n ? `¿Borrar la cuenta y sus ${n} registros?` : '¿Borrar la cuenta?')) return 'stay';
+    S.config.accounts = S.config.accounts.filter(a => a.id !== id);
+    for (const k in S.days) { const d = S.days[k]; if (d.trades) { d.trades = d.trades.filter(x => x.acc !== id); if (!d.trades.length) delete d.trades; if (!hasData(d)) delete S.days[k]; } }
+    if (U.trAcc === id) U.trAcc = 'all'; return true;
+  },
+  wipe: () => { if (!confirm('¿Borrar TODOS tus datos y ajustes? No se puede deshacer.')) return 'stay'; if (!confirm('¿Seguro? Si no tienes copia, se perderá todo.')) return 'stay'; localStorage.removeItem(KEY); load(); U.cur = today(); return true; },
+};
+
+document.addEventListener('click', async e => {
+  const t = e.target.closest('[data-a],[data-tab]');
+  if (!t) return;
+  if (t.dataset.tab) { U.tab = t.dataset.tab; render(); scrollTo(0, 0); return; }
+  const fn = ACTIONS[t.dataset.a]; if (!fn) return;
+  const r = await fn(t);
+  if (r === 'stay') return;
+  if (r === true) checkUnlocks();
+  render();
+});
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.dataset.f) {
+    let v = t.value;
+    if ('num' in t.dataset) { v = v.trim().replace(',', '.'); v = v === '' ? null : parseFloat(v); if (v != null && isNaN(v)) return; }
+    setVal(U.cur, t.dataset.f, v); saveSoon(); renderHero();
+  } else if (t.dataset.u) {
+    setU(t.dataset.u, t.value);
+    if (t.dataset.u.startsWith('wk.') && $('#wkPace')) $('#wkPace').textContent = wkPreview();
+  } else if (t.id === 'txAmt') U.txAmt = t.value;
+  else if (t.id === 'txNote') U.txNote = t.value;
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.dataset.f) checkUnlocks();
+  else if (t.dataset.sel) { U[t.dataset.sel] = t.value; render(); }
+  else if (t.dataset.cfgs) { S.config[t.dataset.cfgs] = t.value; save(); render(); toast('✔️ Guardado'); }
+  else if (t.dataset.cfg) {
+    const v = num(t.value);
+    if (!('zero' in t.dataset ? v >= 0 : v > 0)) { toast('Valor no válido'); render(); return; }
+    const [a, b] = t.dataset.cfg.split('.');
+    if (b) S.config[a][b] = v; else S.config[a] = v;
+    save(); toast('✔️ Guardado');
+  } else if (t.id === 'importFile' && t.files[0]) {
+    const r = new FileReader();
+    r.onload = () => {
+      try {
+        const o = JSON.parse(r.result);
+        if (!o || typeof o.days !== 'object') throw 0;
+        if (!confirm(`Importar copia con ${Object.keys(o.days).length} días. Esto reemplaza los datos actuales. ¿Continuar?`)) return;
+        S = normalize(o); save(); checkUnlocks(true); U.cur = today(); render(); toast('✅ Copia importada');
+      } catch (_) { toast('❌ Ese archivo no es una copia válida'); }
+      t.value = '';
+    };
+    r.readAsText(t.files[0]);
+  }
+});
+
+/* ---------- render ---------- */
+function render() {
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === U.tab));
+  const v = $('#view');
+  const seg = (a, cur, opts) => `<div class="rangeseg">${opts.map(([val, l]) => `<button class="${cur === val ? 'on' : ''}" data-a="${a}" data-v="${val}">${l}</button>`).join('')}</div>`;
+  if (U.tab === 'hoy') { v.innerHTML = vHoy(); renderHero(); }
+  else if (U.tab === 'trends') {
+    v.innerHTML = `<h1>Análisis</h1>${seg('statsView', U.statsView, [['charts', '📈 Gráficas'], ['cal', '🗓️ Calendario']])}` + (U.statsView === 'cal' ? vCal() : vTrends());
+    if (U.statsView !== 'cal') mountTrends();
+  }
+  else if (U.tab === 'sport') { v.innerHTML = vSport(); mountSport(); }
+  else if (U.tab === 'money') {
+    v.innerHTML = `<h1>Dinero</h1>${seg('moneyView', U.moneyView, [['month', '📅 Mes'], ['debts', '💳 Deudas']])}` + (U.moneyView === 'debts' ? vDebts() : vMoney());
+    U.moneyView === 'debts' ? mountDebts() : mountMoney();
+  }
+  else if (U.tab === 'trading') { v.innerHTML = vTrading(); mountTrading(); }
+  else v.innerHTML = vMe();
+}
+let lastW = innerWidth;
+addEventListener('resize', () => { if (Math.abs(innerWidth - lastW) > 40 && ['trends', 'money', 'sport', 'trading'].includes(U.tab)) { lastW = innerWidth; render(); } });
+// al volver a la app otro día, salta a hoy
+document.addEventListener('visibilitychange', () => { if (!document.hidden && U.tab === 'hoy' && U.cur < today() && U.lastSeen !== today()) { U.cur = today(); render(); } U.lastSeen = today(); });
+
+U.lastSeen = today();
+load();
+// una demo creada con una versión anterior no tiene deporte/trading/deudas: se regenera
+if (S.demo && !S.config.accounts.some(a => a.demo)) ACTIONS.demo();
+checkUnlocks(true);
+render();
+if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
