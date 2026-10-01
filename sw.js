@@ -1,5 +1,5 @@
 // Network-first: con internet coge la última versión; sin internet sirve la copia guardada.
-const CACHE = 'vida-v2';
+const CACHE = 'vida-v4';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
